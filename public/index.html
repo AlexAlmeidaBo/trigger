@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WhatsApp Mass Sender | Envio em Massa</title>
+    <meta name="description" content="Ferramenta profissional para envio de mensagens em massa via WhatsApp">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="app">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
+                    </svg>
+                    <span class="logo-text">WA Sender</span>
+                </div>
+            </div>
+
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-section="connection">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                        <line x1="12" y1="2" x2="12" y2="12" />
+                    </svg>
+                    <span>Conexão</span>
+                </a>
+                <a href="#" class="nav-item" data-section="contacts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                        <circle cx="9" cy="7" r="4" />
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                    </svg>
+                    <span>Contatos</span>
+                </a>
+                <a href="#" class="nav-item" data-section="messages">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                    </svg>
+                    <span>Mensagens</span>
+                </a>
+                <a href="#" class="nav-item" data-section="campaigns">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                    </svg>
+                    <span>Campanhas</span>
+                </a>
+                <a href="#" class="nav-item" data-section="reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    <span>Relatórios</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="connection-status" id="connectionStatus">
+                    <span class="status-dot disconnected"></span>
+                    <span class="status-text">Desconectado</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Connection Section -->
+            <section id="connection" class="section active">
+                <div class="section-header">
+                    <h1>Conexão WhatsApp</h1>
+                    <p>Conecte sua conta WhatsApp para começar a enviar mensagens</p>
+                </div>
+
+                <div class="connection-card">
+                    <div class="qr-container" id="qrContainer">
+                        <div class="qr-placeholder" id="qrPlaceholder">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="3" width="7" height="7" />
+                                <rect x="14" y="3" width="7" height="7" />
+                                <rect x="14" y="14" width="7" height="7" />
+                                <rect x="3" y="14" width="7" height="7" />
+                            </svg>
+                            <p>Aguardando QR Code...</p>
+                        </div>
+                        <img id="qrImage" class="qr-image hidden" alt="QR Code">
+                    </div>
+
+                    <div class="connection-info">
+                        <h3 id="connectionTitle">Conecte seu WhatsApp</h3>
+                        <ol class="connection-steps">
+                            <li>Abra o WhatsApp no seu celular</li>
+                            <li>Toque em <strong>Menu</strong> ou <strong>Configurações</strong></li>
+                            <li>Toque em <strong>Dispositivos conectados</strong></li>
+                            <li>Toque em <strong>Conectar um dispositivo</strong></li>
+                            <li>Aponte seu celular para esta tela para capturar o QR Code</li>
+                        </ol>
+
+                        <div class="connection-actions">
+                            <button class="btn btn-primary" id="reconnectBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10" />
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                </svg>
+                                Reconectar
+                            </button>
+                            <button class="btn btn-secondary" id="logoutBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                    <polyline points="16 17 21 12 16 7" />
+                                    <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>
+                                Desconectar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Contacts Section -->
+            <section id="contacts" class="section">
+                <div class="section-header">
+                    <h1>Gerenciar Contatos</h1>
+                    <p>Importe e gerencie seus contatos para campanhas</p>
+                </div>
+
+                <div class="contacts-grid">
+                    <!-- Import Card -->
+                    <div class="card import-card">
+                        <h3>Importar Contatos</h3>
+
+                        <div class="import-options">
+                            <div class="import-option">
+                                <label class="file-upload">
+                                    <input type="file" id="fileImport" accept=".csv,.txt">
+                                    <div class="upload-area">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        <span>Arraste um arquivo CSV ou TXT</span>
+                                        <small>ou clique para selecionar</small>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="divider">ou</div>
+
+                            <div class="import-option">
+                                <button class="btn btn-secondary btn-block" id="importGroupBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                    </svg>
+                                    Importar de Grupo WhatsApp
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="import-status hidden" id="importStatus">
+                            <div class="status-icon success">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                            <span id="importMessage">Contatos importados com sucesso!</span>
+                        </div>
+                    </div>
+
+                    <!-- Contacts List Card -->
+                    <div class="card contacts-list-card">
+                        <div class="card-header">
+                            <h3>Lista de Contatos</h3>
+                            <div class="header-actions">
+                                <span class="contact-count" id="contactCount">0 contatos</span>
+                                <button class="btn btn-danger btn-sm" id="clearContactsBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path
+                                            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    </svg>
+                                    Limpar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="contacts-table-wrapper">
+                            <table class="contacts-table" id="contactsTable">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="selectAllContacts"></th>
+                                        <th>Nome</th>
+                                        <th>Telefone</th>
+                                        <th>Grupo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contactsTableBody">
+                                    <!-- Contacts will be loaded here -->
+                                </tbody>
+                            </table>
+
+                            <div class="empty-state" id="emptyContacts">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                </svg>
+                                <p>Nenhum contato importado</p>
+                                <small>Importe contatos de um arquivo ou grupo WhatsApp</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Selection Modal -->
+                <div class="modal hidden" id="groupModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Selecionar Grupo</h3>
+                            <button class="modal-close" id="closeGroupModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="groups-list" id="groupsList">
+                                <!-- Groups will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Messages Section -->
+            <section id="messages" class="section">
+                <div class="section-header">
+                    <h1>Criar Mensagem</h1>
+                    <p>Compose mensagens personalizadas com suporte a variáveis e variações por IA</p>
+                </div>
+
+                <div class="messages-grid">
+                    <!-- Message Editor -->
+                    <div class="card message-editor-card">
+                        <h3>Editor de Mensagem</h3>
+
+                        <div class="form-group">
+                            <label for="messageContent">Conteúdo da Mensagem</label>
+                            <div class="editor-toolbar">
+                                <button class="toolbar-btn" data-format="bold" title="Negrito">
+                                    <strong>B</strong>
+                                </button>
+                                <button class="toolbar-btn" data-format="italic" title="Itálico">
+                                    <em>I</em>
+                                </button>
+                                <button class="toolbar-btn" data-format="strike" title="Tachado">
+                                    <s>S</s>
+                                </button>
+                                <span class="toolbar-divider"></span>
+                                <button class="toolbar-btn" data-insert="[nome]" title="Inserir nome do contato">
+                                    [nome]
+                                </button>
+                            </div>
+                            <textarea id="messageContent" rows="6" placeholder="Digite sua mensagem aqui...
+
+Use [nome] para inserir o nome do contato automaticamente.
+
+Exemplo:
+Olá, [nome]! Temos uma oferta especial para você!"></textarea>
+                            <small class="char-count"><span id="charCount">0</span> caracteres</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Preview no WhatsApp</label>
+                            <div class="whatsapp-preview-container">
+                                <div class="whatsapp-preview-header">
+                                    <span class="preview-contact-name">João (exemplo)</span>
+                                    <span class="preview-time">agora</span>
+                                </div>
+                                <div class="message-preview" id="messagePreview">
+                                    <p class="preview-placeholder">Digite uma mensagem para ver o preview</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Variations -->
+                    <div class="card ai-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                            </svg>
+                            Variação por IA
+                        </h3>
+
+                        <div class="form-group">
+                            <label>Nível de Variação</label>
+                            <div class="variation-levels">
+                                <label class="variation-option">
+                                    <input type="radio" name="variationLevel" value="none" checked>
+                                    <span class="option-card">
+                                        <strong>Nenhuma</strong>
+                                        <small>Envia a mensagem original</small>
+                                    </span>
+                                </label>
+                                <label class="variation-option">
+                                    <input type="radio" name="variationLevel" value="low">
+                                    <span class="option-card">
+                                        <strong>Baixa</strong>
+                                        <small>Pequenas alterações</small>
+                                    </span>
+                                </label>
+                                <label class="variation-option">
+                                    <input type="radio" name="variationLevel" value="medium">
+                                    <span class="option-card">
+                                        <strong>Média</strong>
+                                        <small>Variações equilibradas</small>
+                                    </span>
+                                </label>
+                                <label class="variation-option">
+                                    <input type="radio" name="variationLevel" value="high">
+                                    <span class="option-card">
+                                        <strong>Alta</strong>
+                                        <small>Maior criatividade</small>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="btn btn-secondary btn-block" id="generateVariationsBtn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                            Gerar Variações
+                        </button>
+
+                        <div class="variations-list hidden" id="variationsList">
+                            <h4>Variações Geradas</h4>
+                            <div class="variations-container" id="variationsContainer">
+                                <!-- Variations will be loaded here -->
+                            </div>
+                        </div>
+
+                        <div class="ai-info">
+                            <div class="ai-status">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
+                                    height="16">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                <span>IA Configurada (Google Gemini)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Campaigns Section -->
+            <section id="campaigns" class="section">
+                <div class="section-header">
+                    <h1>Enviar Campanha</h1>
+                    <p>Configure e envie mensagens para seus contatos selecionados</p>
+                </div>
+
+                <div class="campaign-grid">
+                    <!-- Campaign Config -->
+                    <div class="card campaign-config-card">
+                        <h3>Configuração da Campanha</h3>
+
+                        <div class="form-group">
+                            <label for="campaignName">Nome da Campanha</label>
+                            <input type="text" id="campaignName" placeholder="Ex: Promoção de Natal">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Delay entre Mensagens</label>
+                            <div class="delay-config">
+                                <input type="number" id="delayValue" value="5" min="1" max="300">
+                                <select id="delayUnit">
+                                    <option value="seconds">segundos</option>
+                                    <option value="minutes">minutos</option>
+                                </select>
+                            </div>
+                            <small>Recomendado: 5-30 segundos para evitar bloqueios</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Contatos Selecionados</label>
+                            <div class="selected-contacts-summary" id="selectedContactsSummary">
+                                <span class="count">0</span> contatos selecionados
+                            </div>
+                            <button class="btn btn-secondary btn-block" id="selectContactsBtn">
+                                Selecionar Contatos
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Mensagem</label>
+                            <div class="campaign-message" id="campaignMessagePreview">
+                                <p class="preview-placeholder">Configure a mensagem na seção "Mensagens"</p>
+                            </div>
+                        </div>
+
+                        <div class="campaign-actions">
+                            <button class="btn btn-primary btn-lg btn-block" id="startCampaignBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="5 3 19 12 5 21 5 3" />
+                                </svg>
+                                Iniciar Campanha
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Campaign Progress -->
+                    <div class="card campaign-progress-card">
+                        <h3>Progresso da Campanha</h3>
+
+                        <div class="progress-container" id="progressContainer">
+                            <div class="progress-placeholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                </svg>
+                                <p>Nenhuma campanha em andamento</p>
+                            </div>
+                        </div>
+
+                        <div class="progress-active hidden" id="progressActive">
+                            <div class="progress-stats">
+                                <div class="stat">
+                                    <span class="stat-value" id="progressCurrent">0</span>
+                                    <span class="stat-label">Enviadas</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value" id="progressTotal">0</span>
+                                    <span class="stat-label">Total</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-value" id="progressFailed">0</span>
+                                    <span class="stat-label">Falhas</span>
+                                </div>
+                            </div>
+
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+
+                            <div class="progress-log" id="progressLog">
+                                <!-- Log entries will be added here -->
+                            </div>
+
+                            <button class="btn btn-danger" id="stopCampaignBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="6" y="6" width="12" height="12" />
+                                </svg>
+                                Parar Campanha
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Selection Modal -->
+                <div class="modal hidden" id="contactSelectModal">
+                    <div class="modal-content modal-lg">
+                        <div class="modal-header">
+                            <h3>Selecionar Contatos</h3>
+                            <button class="modal-close" id="closeContactModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="modal-contacts-list" id="modalContactsList">
+                                <!-- Contacts will be loaded here -->
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" id="cancelContactSelect">Cancelar</button>
+                            <button class="btn btn-primary" id="confirmContactSelect">Confirmar Seleção</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Reports Section -->
+            <section id="reports" class="section">
+                <div class="section-header">
+                    <h1>Relatórios</h1>
+                    <p>Acompanhe o desempenho das suas campanhas</p>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon contacts">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statContacts">0</span>
+                            <span class="stat-label">Contatos</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon campaigns">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statCampaigns">0</span>
+                            <span class="stat-label">Campanhas</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon sent">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statSent">0</span>
+                            <span class="stat-label">Mensagens Enviadas</span>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon failed">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg>
+                        </div>
+                        <div class="stat-info">
+                            <span class="stat-value" id="statFailed">0</span>
+                            <span class="stat-label">Falhas</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card campaigns-history-card">
+                    <div class="card-header">
+                        <h3>Histórico de Campanhas</h3>
+                    </div>
+
+                    <div class="campaigns-table-wrapper">
+                        <table class="campaigns-table" id="campaignsTable">
+                            <thead>
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Status</th>
+                                    <th>Enviadas</th>
+                                    <th>Falhas</th>
+                                    <th>Taxa de Sucesso</th>
+                                    <th>Data</th>
+                                    <th>Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="campaignsTableBody">
+                                <!-- Campaigns will be loaded here -->
+                            </tbody>
+                        </table>
+
+                        <div class="empty-state" id="emptyCampaigns">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                            </svg>
+                            <p>Nenhuma campanha realizada</p>
+                            <small>Crie sua primeira campanha na seção "Campanhas"</small>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/app.js"></script>
+    <script src="js/whatsapp.js"></script>
+    <script src="js/contacts.js"></script>
+    <script src="js/messages.js"></script>
+    <script src="js/campaigns.js"></script>
+    <script src="js/reports.js"></script>
+</body>
+
+</html>
