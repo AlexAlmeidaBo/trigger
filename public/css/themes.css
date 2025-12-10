@@ -466,3 +466,138 @@ button {
     background: #ffffff;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
 }
+
+/* Agent Section Placeholder Styles */
+.coming-soon-banner {
+    display: inline-block;
+    background: linear-gradient(135deg, #8b5cf6, #6366f1);
+    color: white;
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-top: 1rem;
+}
+
+.agent-placeholder-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
+    margin-top: 2rem;
+    pointer-events: none;
+    user-select: none;
+}
+
+.placeholder-card {
+    background: rgba(30, 30, 30, 0.6);
+    border: 1px solid rgba(50, 50, 50, 0.5);
+    border-radius: 16px;
+    padding: 1.5rem;
+    opacity: 0.5;
+}
+
+.placeholder-card.wide {
+    grid-column: span 2;
+}
+
+.placeholder-card.tall {
+    grid-row: span 2;
+}
+
+.placeholder-header {
+    height: 24px;
+    width: 60%;
+    background: rgba(60, 60, 60, 0.8);
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+}
+
+.placeholder-body {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.placeholder-line {
+    height: 12px;
+    background: rgba(50, 50, 50, 0.8);
+    border-radius: 4px;
+}
+
+.placeholder-line.long { width: 100%; }
+.placeholder-line.medium { width: 75%; }
+.placeholder-line.short { width: 50%; }
+
+.placeholder-textarea {
+    height: 120px;
+    background: rgba(40, 40, 40, 0.8);
+    border-radius: 8px;
+}
+
+.placeholder-footer {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+}
+
+.placeholder-btn {
+    height: 36px;
+    width: 120px;
+    background: rgba(60, 60, 60, 0.8);
+    border-radius: 8px;
+}
+
+.placeholder-btn.small {
+    width: 80px;
+}
+
+.placeholder-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+}
+
+.placeholder-stat-box {
+    height: 80px;
+    background: rgba(40, 40, 40, 0.8);
+    border-radius: 12px;
+}
+
+.placeholder-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.placeholder-list-item {
+    height: 48px;
+    background: rgba(45, 45, 45, 0.8);
+    border-radius: 8px;
+}
+
+/* Light theme placeholders */
+[data-theme="light"] .placeholder-card {
+    background: rgba(200, 200, 200, 0.4);
+    border-color: rgba(180, 180, 180, 0.5);
+}
+
+[data-theme="light"] .placeholder-header,
+[data-theme="light"] .placeholder-line,
+[data-theme="light"] .placeholder-textarea,
+[data-theme="light"] .placeholder-btn,
+[data-theme="light"] .placeholder-stat-box,
+[data-theme="light"] .placeholder-list-item {
+    background: rgba(180, 180, 180, 0.6);
+}
+
+@media (max-width: 768px) {
+    .agent-placeholder-grid {
+        grid-template-columns: 1fr;
+    }
+    .placeholder-card.wide {
+        grid-column: span 1;
+    }
+    .placeholder-stats {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
