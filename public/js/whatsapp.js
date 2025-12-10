@@ -18,11 +18,9 @@ const WhatsApp = {
             const result = await API.get('/whatsapp/status');
             this.handleStatus(result);
 
-            // Se não estiver conectado e ainda não pediu QR, solicita automaticamente
-            if (result.status !== 'connected' && !this.qrRequested) {
-                this.qrRequested = true;
-                await this.requestNewQR();
-            }
+            // Se já está conectado, não faz nada
+            // Se está desconectado, apenas mostra o status - usuário clica em Reconectar manualmente
+            // Isso evita reiniciar a sessão ao dar F5
         } catch (err) {
             console.error('Error checking status:', err);
         }
