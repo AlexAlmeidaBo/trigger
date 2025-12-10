@@ -16,6 +16,7 @@ const messagesRouter = require('./src/routes/messages');
 const reportsRouter = require('./src/routes/reports');
 const groupSearchRouter = require('./src/routes/group-search');
 const agentRouter = require('./src/routes/agent');
+const subscriptionsRouter = require('./src/routes/subscriptions');
 
 const app = express();
 const server = http.createServer(app);
@@ -34,6 +35,9 @@ app.get('/', (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Webhook route (no auth required - must be before authMiddleware)
+app.use('/api/webhook', subscriptionsRouter);
+
 // Auth middleware for API routes
 app.use('/api', authMiddleware);
 
@@ -44,6 +48,7 @@ app.use('/api/messages', messagesRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/groups', groupSearchRouter);
 app.use('/api/agent', agentRouter);
+app.use('/api/subscription', subscriptionsRouter);
 
 // WhatsApp status endpoint
 app.get('/api/whatsapp/status', (req, res) => {

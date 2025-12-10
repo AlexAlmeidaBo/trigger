@@ -92,6 +92,20 @@ class Database {
                 variations TEXT NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP
             );
+
+            CREATE TABLE IF NOT EXISTS subscriptions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                email TEXT NOT NULL,
+                status TEXT DEFAULT 'active',
+                kirvano_transaction_id TEXT,
+                plan_name TEXT DEFAULT 'monthly',
+                starts_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                expires_at DATETIME,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id)
+            );
         `);
 
         // Run migrations for existing databases
@@ -463,6 +477,107 @@ class Database {
             totalSent: sentResult?.count || 0,
             totalFailed: failedResult?.count || 0
         };
+    }
+
+    // Subscriptions
+    getSubscription(userId) {
+        return this.get('SELECT * FROM subscriptions WHERE user_id = ?', [userId]);
+    }
+
+    getSubscriptionByEmail(email) {
+        return this.get('SELECT * FROM subscriptions WHERE email = ?', [email]);
+    }
+
+    activateSubscription(userId, email, transactionId, daysToAdd = 30) {
+        const existingSub = this.getSubscription(userId);
+        const now = new Date();
+        let expiresAt;
+
+        if (existingSub && existingSub.status === 'active' && new Date(existingSub.expires_at) > now) {
+            // Extend existing subscription
+            expiresAt = new Date(existingSub.expires_at);
+            expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+        } else {
+            // New subscription
+            expiresAt = new Date();
+            expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+        }
+
+        this.run(`
+            INSERT INTO subscriptions (user_id, email, status, kirvano_transaction_id, expires_at, updated_at)
+            VALUES (?, ?, 'active', ?, ?, CURRENT_TIMESTAMP)
+            ON CONFLICT(user_id) DO UPDATE SET
+                status = 'active',
+                kirvano_transaction_id = ?,
+                expires_at = ?,
+                updated_at = CURRENT_TIMESTAMP
+        `, [userId, email, transactionId, expiresAt.toISOString(), transactionId, expiresAt.toISOString()]);
+
+        return this.getSubscription(userId);
+    }
+
+    activateSubscriptionByEmail(email, transactionId, daysToAdd = 30) {
+        // Find user by email first
+        const user = this.get('SELECT id FROM users WHERE email = ?', [email]);
+        if (user) {
+            return this.activateSubscription(user.id, email, transactionId, daysToAdd);
+        }
+
+        // If user doesn't exist yet, create pending subscription
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + daysToAdd);
+
+        this.run(`
+            INSERT OR REPLACE INTO subscriptions (user_id, email, status, kirvano_transaction_id, expires_at, updated_at)
+            VALUES (?, ?, 'active', ?, ?, CURRENT_TIMESTAMP)
+        `, [email, email, transactionId, expiresAt.toISOString()]);
+
+        return this.getSubscriptionByEmail(email);
+    }
+
+    cancelSubscription(userId) {
+        this.run(`
+            UPDATE subscriptions
+            SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+            WHERE user_id = ?
+        `, [userId]);
+    }
+
+    cancelSubscriptionByEmail(email) {
+        this.run(`
+            UPDATE subscriptions
+            SET status = 'cancelled', updated_at = CURRENT_TIMESTAMP
+            WHERE email = ?
+        `, [email]);
+    }
+
+    isSubscriptionActive(userId) {
+        const sub = this.getSubscription(userId);
+        if (!sub) return false;
+        if (sub.status !== 'active') return false;
+        if (new Date(sub.expires_at) < new Date()) return false;
+        return true;
+    }
+
+    isSubscriptionActiveByEmail(email) {
+        const sub = this.getSubscriptionByEmail(email);
+        if (!sub) return false;
+        if (sub.status !== 'active') return false;
+        if (new Date(sub.expires_at) < new Date()) return false;
+        return true;
+    }
+
+    // Link subscription to user when they login
+    linkSubscriptionToUser(userId, email) {
+        const subByEmail = this.getSubscriptionByEmail(email);
+        if (subByEmail && subByEmail.user_id === email) {
+            // Update subscription to use real user_id
+            this.run(`
+                UPDATE subscriptions
+                SET user_id = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE email = ?
+            `, [userId, email]);
+        }
     }
 }
 

@@ -21,6 +21,12 @@ const App = {
     },
 
     async checkAuth() {
+        // Skip subscription check if already on blocked page
+        const currentPath = window.location.pathname;
+        if (currentPath.includes('subscription-blocked') || currentPath.includes('login') || currentPath.includes('landing')) {
+            return true;
+        }
+
         // Check if user is logged in
         if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {
             window.location.href = '/login.html';
@@ -31,6 +37,25 @@ const App = {
         if (typeof Auth !== 'undefined') {
             this.user = Auth.getUser();
         }
+
+        // TODO: Subscription check temporarily disabled to fix redirect loop
+        // Enable this after configuring Kirvano webhook
+        /*
+        // Check subscription status (only if not already checking)
+        if (typeof Auth !== 'undefined' && Auth.checkSubscription && !window._checkingSubscription) {
+            window._checkingSubscription = true;
+            try {
+                const subStatus = await Auth.checkSubscription();
+                if (!subStatus.active) {
+                    console.log('Subscription not active:', subStatus.reason);
+                    window.location.href = '/subscription-blocked.html';
+                    return false;
+                }
+            } finally {
+                window._checkingSubscription = false;
+            }
+        }
+        */
 
         return true;
     },

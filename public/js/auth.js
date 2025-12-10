@@ -256,8 +256,45 @@ const Auth = {
         }
 
         return response;
+    },
+
+    // Check subscription status
+    async checkSubscription() {
+        try {
+            const token = this.getToken();
+            if (!token) return { active: false, reason: 'not_logged_in' };
+
+            const response = await fetch('/api/subscription/status', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            if (!response.ok) {
+                return { active: false, reason: 'error' };
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Subscription check error:', error);
+            return { active: false, reason: 'error' };
+        }
+    },
+
+    // Verify subscription and redirect if inactive
+    async requireSubscription() {
+        const status = await this.checkSubscription();
+
+        if (!status.active) {
+            console.log('Subscription inactive:', status.reason);
+            window.location.href = '/subscription-blocked.html';
+            return false;
+        }
+
+        return true;
     }
 };
 
 // Export for use in other modules
 window.Auth = Auth;
+
