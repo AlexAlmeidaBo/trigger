@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/style.css">`n    <link rel="stylesheet" href="css/themes.css">
     <style>
         .login-page {
             min-height: 100vh;
@@ -343,13 +343,13 @@
                 <div class="form-group">
                     <label for="loginEmail">Email</label>
                     <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email">
-                    <span class="error-text">Email inválido</span>
+                    <span class="error-text">Email invÃ¡lido</span>
                 </div>
 
                 <div class="form-group">
                     <label for="loginPassword">Senha</label>
                     <input type="password" id="loginPassword" placeholder="Sua senha" autocomplete="current-password">
-                    <span class="error-text">A senha deve ter no mínimo 6 caracteres</span>
+                    <span class="error-text">A senha deve ter no mÃ­nimo 6 caracteres</span>
                 </div>
 
                 <button class="submit-btn" id="loginBtn">Entrar</button>
@@ -376,7 +376,7 @@
                 <div class="form-group">
                     <label for="registerEmail">Email</label>
                     <input type="email" id="registerEmail" placeholder="seu@email.com" autocomplete="email">
-                    <span class="error-text">Email inválido</span>
+                    <span class="error-text">Email invÃ¡lido</span>
                 </div>
 
                 <div class="form-group">
@@ -389,14 +389,14 @@
                         </div>
                         <div class="strength-text" id="strengthText"></div>
                     </div>
-                    <span class="error-text">A senha deve ter no mínimo 6 caracteres</span>
+                    <span class="error-text">A senha deve ter no mÃ­nimo 6 caracteres</span>
                 </div>
 
                 <div class="form-group">
                     <label for="confirmPassword">Confirmar Senha</label>
                     <input type="password" id="confirmPassword" placeholder="Confirme sua senha"
                         autocomplete="new-password">
-                    <span class="error-text">As senhas não coincidem</span>
+                    <span class="error-text">As senhas nÃ£o coincidem</span>
                 </div>
 
                 <button class="submit-btn" id="registerBtn">Criar Conta</button>
@@ -419,7 +419,7 @@
             </div>
 
             <div class="login-footer">
-                <p>Seus dados estão seguros e criptografados</p>
+                <p>Seus dados estÃ£o seguros e criptografados</p>
             </div>
         </div>
     </div>
@@ -508,7 +508,7 @@
                 text.textContent = 'Senha fraca';
             } else if (strength === 2) {
                 fill.classList.add('medium');
-                text.textContent = 'Senha média';
+                text.textContent = 'Senha mÃ©dia';
             } else {
                 fill.classList.add('strong');
                 text.textContent = 'Senha forte';
@@ -620,6 +620,6 @@
             });
         });
     </script>
-</body>
+<script src="js/theme.js"></script>`n</body>
 
 </html>

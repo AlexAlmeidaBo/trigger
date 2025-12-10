@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/themes.css">
 </head>
 
 <body>
@@ -32,7 +33,7 @@
                         <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
                         <line x1="12" y1="2" x2="12" y2="12" />
                     </svg>
-                    <span>Conexão</span>
+                    <span>ConexÃ£o</span>
                 </a>
                 <a href="#" class="nav-item" data-section="contacts">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -61,7 +62,7 @@
                         <line x1="12" y1="20" x2="12" y2="4" />
                         <line x1="6" y1="20" x2="6" y2="14" />
                     </svg>
-                    <span>Relatórios</span>
+                    <span>RelatÃ³rios</span>
                 </a>
             </nav>
 
@@ -78,8 +79,8 @@
             <!-- Connection Section -->
             <section id="connection" class="section active">
                 <div class="section-header">
-                    <h1>Conexão WhatsApp</h1>
-                    <p>Conecte sua conta WhatsApp para começar a enviar mensagens</p>
+                    <h1>ConexÃ£o WhatsApp</h1>
+                    <p>Conecte sua conta WhatsApp para comeÃ§ar a enviar mensagens</p>
                 </div>
 
                 <div class="connection-card">
@@ -100,7 +101,7 @@
                         <h3 id="connectionTitle">Conecte seu WhatsApp</h3>
                         <ol class="connection-steps">
                             <li>Abra o WhatsApp no seu celular</li>
-                            <li>Toque em <strong>Menu</strong> ou <strong>Configurações</strong></li>
+                            <li>Toque em <strong>Menu</strong> ou <strong>ConfiguraÃ§Ãµes</strong></li>
                             <li>Toque em <strong>Dispositivos conectados</strong></li>
                             <li>Toque em <strong>Conectar um dispositivo</strong></li>
                             <li>Aponte seu celular para esta tela para capturar o QR Code</li>
@@ -205,7 +206,7 @@
                                         <th>Nome</th>
                                         <th>Telefone</th>
                                         <th>Grupo</th>
-                                        <th>Ações</th>
+                                        <th>AÃ§Ãµes</th>
                                     </tr>
                                 </thead>
                                 <tbody id="contactsTableBody">
@@ -245,7 +246,7 @@
             <section id="messages" class="section">
                 <div class="section-header">
                     <h1>Criar Mensagem</h1>
-                    <p>Compose mensagens personalizadas com suporte a variáveis e variações por IA</p>
+                    <p>Compose mensagens personalizadas com suporte a variÃ¡veis e variaÃ§Ãµes por IA</p>
                 </div>
 
                 <div class="messages-grid">
@@ -254,12 +255,12 @@
                         <h3>Editor de Mensagem</h3>
 
                         <div class="form-group">
-                            <label for="messageContent">Conteúdo da Mensagem</label>
+                            <label for="messageContent">ConteÃºdo da Mensagem</label>
                             <div class="editor-toolbar">
                                 <button class="toolbar-btn" data-format="bold" title="Negrito">
                                     <strong>B</strong>
                                 </button>
-                                <button class="toolbar-btn" data-format="italic" title="Itálico">
+                                <button class="toolbar-btn" data-format="italic" title="ItÃ¡lico">
                                     <em>I</em>
                                 </button>
                                 <button class="toolbar-btn" data-format="strike" title="Tachado">
@@ -275,7 +276,7 @@
 Use [nome] para inserir o nome do contato automaticamente.
 
 Exemplo:
-Olá, [nome]! Temos uma oferta especial para você!"></textarea>
+OlÃ¡, [nome]! Temos uma oferta especial para vocÃª!"></textarea>
                             <small class="char-count"><span id="charCount">0</span> caracteres</small>
                         </div>
 
@@ -283,7 +284,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                             <label>Preview no WhatsApp</label>
                             <div class="whatsapp-preview-container">
                                 <div class="whatsapp-preview-header">
-                                    <span class="preview-contact-name">João (exemplo)</span>
+                                    <span class="preview-contact-name">JoÃ£o (exemplo)</span>
                                     <span class="preview-time">agora</span>
                                 </div>
                                 <div class="message-preview" id="messagePreview">
@@ -293,7 +294,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                         </div>
                     </div>
 
-                                        <!-- Texto Mágico -->
+                    <!-- Texto MÃ¡gico -->
                     <div class="card ai-card">
                         <div class="ai-toggle">
                             <label class="toggle-switch">
@@ -302,22 +303,24 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                             </label>
                             <div class="toggle-label">
                                 <div class="toggle-title">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                        width="20" height="20">
                                         <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                                     </svg>
-                                    Texto Mágico
+                                    Texto MÃ¡gico
                                 </div>
-                                <small>Gera variações automáticas da mensagem para evitar bloqueios do WhatsApp</small>
+                                <small>Gera variaÃ§Ãµes automÃ¡ticas da mensagem para evitar bloqueios do WhatsApp</small>
                             </div>
                         </div>
 
                         <div class="ai-info-box" id="aiInfoBox">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18"
+                                height="18">
                                 <circle cx="12" cy="12" r="10" />
                                 <line x1="12" y1="16" x2="12" y2="12" />
                                 <line x1="12" y1="8" x2="12.01" y2="8" />
                             </svg>
-                            <span>Cada mensagem será ligeiramente diferente para parecer mais natural</span>
+                            <span>Cada mensagem serÃ¡ ligeiramente diferente para parecer mais natural</span>
                         </div>
                     </div>
                 </div>
@@ -333,11 +336,11 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                 <div class="campaign-grid">
                     <!-- Campaign Config -->
                     <div class="card campaign-config-card">
-                        <h3>Configuração da Campanha</h3>
+                        <h3>ConfiguraÃ§Ã£o da Campanha</h3>
 
                         <div class="form-group">
                             <label for="campaignName">Nome da Campanha</label>
-                            <input type="text" id="campaignName" placeholder="Ex: Promoção de Natal">
+                            <input type="text" id="campaignName" placeholder="Ex: PromoÃ§Ã£o de Natal">
                         </div>
 
                         <div class="form-group">
@@ -365,7 +368,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                         <div class="form-group">
                             <label>Mensagem</label>
                             <div class="campaign-message" id="campaignMessagePreview">
-                                <p class="preview-placeholder">Configure a mensagem na seção "Mensagens"</p>
+                                <p class="preview-placeholder">Configure a mensagem na seÃ§Ã£o "Mensagens"</p>
                             </div>
                         </div>
 
@@ -440,7 +443,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                         </div>
                         <div class="modal-footer">
                             <button class="btn btn-secondary" id="cancelContactSelect">Cancelar</button>
-                            <button class="btn btn-primary" id="confirmContactSelect">Confirmar Seleção</button>
+                            <button class="btn btn-primary" id="confirmContactSelect">Confirmar SeleÃ§Ã£o</button>
                         </div>
                     </div>
                 </div>
@@ -449,7 +452,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
             <!-- Reports Section -->
             <section id="reports" class="section">
                 <div class="section-header">
-                    <h1>Relatórios</h1>
+                    <h1>RelatÃ³rios</h1>
                     <p>Acompanhe o desempenho das suas campanhas</p>
                 </div>
 
@@ -508,7 +511,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
 
                 <div class="card campaigns-history-card">
                     <div class="card-header">
-                        <h3>Histórico de Campanhas</h3>
+                        <h3>HistÃ³rico de Campanhas</h3>
                     </div>
 
                     <div class="campaigns-table-wrapper">
@@ -521,7 +524,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                                     <th>Falhas</th>
                                     <th>Taxa de Sucesso</th>
                                     <th>Data</th>
-                                    <th>Ações</th>
+                                    <th>AÃ§Ãµes</th>
                                 </tr>
                             </thead>
                             <tbody id="campaignsTableBody">
@@ -534,7 +537,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                                 <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
                             </svg>
                             <p>Nenhuma campanha realizada</p>
-                            <small>Crie sua primeira campanha na seção "Campanhas"</small>
+                            <small>Crie sua primeira campanha na seÃ§Ã£o "Campanhas"</small>
                         </div>
                     </div>
                 </div>
@@ -552,7 +555,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
     <script src="js/firebase-config.js"></script>
     <script src="js/auth.js"></script>
     <!-- App Scripts -->
-    <script src="js/app.js"></script>
+    <script src="js/theme.js"></script>`n    <script src="js/app.js"></script>
     <script src="js/whatsapp.js"></script>
     <script src="js/contacts.js"></script>
     <script src="js/messages.js"></script>
