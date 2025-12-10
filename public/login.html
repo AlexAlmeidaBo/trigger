@@ -434,7 +434,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('authToken');
             if (token) {
-                window.location.href = '/';
+                window.location.href = '/index.html';
             }
         });
 
@@ -540,7 +540,7 @@
 
             try {
                 await Auth.loginWithEmail(email, password);
-                window.location.href = '/';
+                window.location.href = '/index.html';
             } catch (error) {
                 showError(error.message);
                 btn.disabled = false;
@@ -582,7 +582,7 @@
                 await Auth.createUserWithEmail(email, password);
                 showSuccess('Conta criada com sucesso! Redirecionando...');
                 setTimeout(() => {
-                    window.location.href = '/';
+                    window.location.href = '/index.html';
                 }, 1500);
             } catch (error) {
                 showError(error.message);
@@ -598,7 +598,7 @@
             try {
                 hideError();
                 await Auth.loginWithGoogle();
-                window.location.href = '/';
+                window.location.href = '/index.html';
             } catch (error) {
                 showError(error.message || 'Erro ao fazer login. Tente novamente.');
             }
