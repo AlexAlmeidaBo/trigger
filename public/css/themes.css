@@ -51,61 +51,99 @@
     --shadow-glow: 0 0 40px rgba(0, 210, 106, 0.25);
 }
 
-/* Light Theme */
+/* Light Theme - HIGH CONTRAST */
 [data-theme="light"],
 .light-theme {
-    --bg-primary: #f8f9fa !important;
+    --bg-primary: #f5f5f5 !important;
     --bg-secondary: #ffffff !important;
-    --bg-tertiary: #f0f1f2 !important;
+    --bg-tertiary: #e8e8e8 !important;
     --bg-card: #ffffff !important;
-    --bg-card-hover: #f5f6f7 !important;
+    --bg-card-hover: #f0f0f0 !important;
     --bg-glass: rgba(255, 255, 255, 0.98) !important;
     --bg-input: #ffffff !important;
 
-    --text-primary: #0a0a0a !important;
-    --text-secondary: #3a3a3a !important;
-    --text-muted: #6a6a6a !important;
+    /* Text colors - BLACK FOR HIGH CONTRAST */
+    --text-primary: #000000 !important;
+    --text-secondary: #222222 !important;
+    --text-muted: #555555 !important;
     --text-inverse: #ffffff !important;
 
-    --border-color: #e0e0e0 !important;
-    --border-hover: #c0c0c0 !important;
+    /* Borders - visible */
+    --border-color: #bbbbbb !important;
+    --border-hover: #888888 !important;
 
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
-    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
-    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12) !important;
-    --shadow-glow: 0 0 40px rgba(0, 210, 106, 0.1) !important;
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+    --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+    --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.2) !important;
+    --shadow-glow: 0 0 40px rgba(0, 210, 106, 0.15) !important;
 }
 
-/* Light theme specific overrides */
+/* Light theme body */
 [data-theme="light"] body,
 .light-theme body {
-    background: #f8f9fa;
-    color: #0a0a0a;
+    background: #f5f5f5 !important;
+    color: #000000 !important;
 }
 
+/* Sidebar in light mode */
 [data-theme="light"] .sidebar,
 .light-theme .sidebar {
-    background: #ffffff;
-    border-right-color: #e0e0e0;
+    background: #ffffff !important;
+    border-right: 1px solid #cccccc !important;
 }
 
+/* Navigation items */
 [data-theme="light"] .nav-item,
 .light-theme .nav-item {
-    color: #3a3a3a;
+    color: #222222 !important;
+}
+
+[data-theme="light"] .nav-item:hover,
+.light-theme .nav-item:hover {
+    background: rgba(0, 210, 106, 0.08) !important;
 }
 
 [data-theme="light"] .nav-item.active,
 .light-theme .nav-item.active {
-    background: rgba(0, 210, 106, 0.1);
-    color: #00a855;
+    background: rgba(0, 210, 106, 0.15) !important;
+    color: #008844 !important;
 }
 
+[data-theme="light"] .nav-item span,
+.light-theme .nav-item span {
+    color: inherit !important;
+}
+
+/* Cards */
 [data-theme="light"] .card,
 .light-theme .card {
-    background: #ffffff;
-    border-color: #e0e0e0;
+    background: #ffffff !important;
+    border: 1px solid #cccccc !important;
 }
 
+/* Labels and text */
+[data-theme="light"] label,
+[data-theme="light"] .form-label,
+[data-theme="light"] .card-title,
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3,
+[data-theme="light"] h4,
+[data-theme="light"] h5,
+[data-theme="light"] h6,
+.light-theme label,
+.light-theme .form-label,
+.light-theme .card-title,
+.light-theme h1,
+.light-theme h2,
+.light-theme h3,
+.light-theme h4,
+.light-theme h5,
+.light-theme h6 {
+    color: #000000 !important;
+}
+
+/* Inputs */
 [data-theme="light"] .form-control,
 [data-theme="light"] input,
 [data-theme="light"] select,
@@ -115,8 +153,15 @@
 .light-theme select,
 .light-theme textarea {
     background: #ffffff !important;
-    border-color: #d0d0d0 !important;
-    color: #0a0a0a !important;
+    border: 1px solid #aaaaaa !important;
+    color: #000000 !important;
+}
+
+[data-theme="light"] input::placeholder,
+[data-theme="light"] textarea::placeholder,
+.light-theme input::placeholder,
+.light-theme textarea::placeholder {
+    color: #666666 !important;
 }
 
 [data-theme="light"] .form-control:focus,
@@ -124,29 +169,55 @@
 .light-theme .form-control:focus,
 .light-theme input:focus {
     border-color: #00d26a !important;
-    box-shadow: 0 0 0 3px rgba(0, 210, 106, 0.15) !important;
+    box-shadow: 0 0 0 3px rgba(0, 210, 106, 0.2) !important;
 }
 
-[data-theme="light"] .btn-primary,
-.light-theme .btn-primary {
-    background: linear-gradient(135deg, #00d26a, #00a855);
-    color: white;
-}
-
+/* Main content */
 [data-theme="light"] .main-content,
 .light-theme .main-content {
-    background: #f8f9fa;
+    background: #f5f5f5 !important;
 }
 
+/* Section headers */
+[data-theme="light"] .section-header,
+.light-theme .section-header {
+    color: #000000 !important;
+}
+
+/* Paragraphs and descriptions */
+[data-theme="light"] p,
+[data-theme="light"] .description,
+[data-theme="light"] small,
+.light-theme p,
+.light-theme .description,
+.light-theme small {
+    color: #333333 !important;
+}
+
+/* User info */
 [data-theme="light"] .user-info,
 .light-theme .user-info {
-    background: rgba(0, 0, 0, 0.03);
-    border-top-color: #e0e0e0;
+    background: #f0f0f0 !important;
+    border-top: 1px solid #cccccc !important;
 }
 
 [data-theme="light"] .user-name,
 .light-theme .user-name {
-    color: #0a0a0a;
+    color: #000000 !important;
+}
+
+[data-theme="light"] .user-email,
+.light-theme .user-email {
+    color: #444444 !important;
+}
+
+/* Logo text */
+[data-theme="light"] .logo-text,
+.light-theme .logo-text {
+    background: linear-gradient(135deg, #00a855, #008844) !important;
+    -webkit-background-clip: text !important;
+    -webkit-text-fill-color: transparent !important;
+    background-clip: text !important;
 }
 
 /* Theme Toggle Button */
@@ -189,6 +260,13 @@
 }
 
 /* Moon icon for light mode */
+[data-theme="light"] .theme-toggle,
+.light-theme .theme-toggle {
+    background: #ffffff !important;
+    border-color: #cccccc !important;
+    color: #000000 !important;
+}
+
 [data-theme="light"] .theme-toggle .sun-icon,
 .light-theme .theme-toggle .sun-icon {
     display: none;
