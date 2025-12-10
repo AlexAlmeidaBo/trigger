@@ -7,9 +7,13 @@ const WebSocket = require('ws');
 // Import modules
 const db = require('./src/database');
 const whatsapp = require('./src/whatsapp');
+const { authMiddleware } = require('./src/authMiddleware');
+const authRouter = require('./src/routes/auth');
 const contactsRouter = require('./src/routes/contacts');
 const messagesRouter = require('./src/routes/messages');
 const reportsRouter = require('./src/routes/reports');
+const groupSearchRouter = require('./src/routes/group-search');
+const agentRouter = require('./src/routes/agent');
 
 const app = express();
 const server = http.createServer(app);
@@ -22,10 +26,16 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Auth middleware for API routes
+app.use('/api', authMiddleware);
+
 // API Routes
+app.use('/api/auth', authRouter);
 app.use('/api/contacts', contactsRouter);
 app.use('/api/messages', messagesRouter);
 app.use('/api/reports', reportsRouter);
+app.use('/api/groups', groupSearchRouter);
+app.use('/api/agent', agentRouter);
 
 // WhatsApp status endpoint
 app.get('/api/whatsapp/status', (req, res) => {

@@ -4,6 +4,7 @@ const multer = require('multer');
 const { parse } = require('csv-parse/sync');
 const db = require('../database');
 const whatsapp = require('../whatsapp');
+const { getUserId } = require('../authMiddleware');
 
 // Configure multer for file uploads
 const upload = multer({
@@ -14,7 +15,8 @@ const upload = multer({
 // Get all contacts
 router.get('/', (req, res) => {
     try {
-        const contacts = db.getAllContacts();
+        const userId = getUserId(req);
+        const contacts = db.getAllContacts(userId);
         res.json({ success: true, contacts });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -24,6 +26,7 @@ router.get('/', (req, res) => {
 // Add single contact
 router.post('/', (req, res) => {
     try {
+        const userId = getUserId(req);
         const { phone, name, groupName } = req.body;
 
         if (!phone) {
@@ -33,7 +36,7 @@ router.post('/', (req, res) => {
         // Clean phone number
         const cleanPhone = phone.replace(/\D/g, '');
 
-        const result = db.insertContact(cleanPhone, name || cleanPhone, groupName);
+        const result = db.insertContact(cleanPhone, name || cleanPhone, groupName, userId);
         res.json({
             success: true,
             id: result.lastInsertRowid,
@@ -47,6 +50,8 @@ router.post('/', (req, res) => {
 // Import contacts from CSV/TXT
 router.post('/import', upload.single('file'), (req, res) => {
     try {
+        const userId = getUserId(req);
+
         if (!req.file) {
             return res.status(400).json({ success: false, error: 'No file uploaded' });
         }
@@ -94,7 +99,7 @@ router.post('/import', upload.single('file'), (req, res) => {
         }
 
         // Insert contacts
-        db.insertManyContacts(contacts);
+        db.insertManyContacts(contacts, userId);
 
         res.json({
             success: true,
@@ -109,6 +114,7 @@ router.post('/import', upload.single('file'), (req, res) => {
 // Import contacts from WhatsApp group
 router.post('/import-group', async (req, res) => {
     try {
+        const userId = getUserId(req);
         const { groupId, groupName } = req.body;
 
         if (!groupId) {
@@ -123,7 +129,7 @@ router.post('/import-group', async (req, res) => {
             groupName: groupName || 'WhatsApp Group'
         }));
 
-        db.insertManyContacts(contacts);
+        db.insertManyContacts(contacts, userId);
 
         res.json({
             success: true,
@@ -148,7 +154,8 @@ router.get('/groups', async (req, res) => {
 // Delete contact
 router.delete('/:id', (req, res) => {
     try {
-        db.deleteContact(req.params.id);
+        const userId = getUserId(req);
+        db.deleteContact(req.params.id, userId);
         res.json({ success: true, message: 'Contact deleted' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -158,7 +165,8 @@ router.delete('/:id', (req, res) => {
 // Clear all contacts
 router.delete('/', (req, res) => {
     try {
-        db.clearContacts();
+        const userId = getUserId(req);
+        db.clearContacts(userId);
         res.json({ success: true, message: 'All contacts deleted' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -166,3 +174,4 @@ router.delete('/', (req, res) => {
 });
 
 module.exports = router;
+

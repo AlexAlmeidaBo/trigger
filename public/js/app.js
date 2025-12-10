@@ -4,11 +4,100 @@ const App = {
     ws: null,
     selectedContacts: [],
     messageContent: '',
+    user: null,
 
-    init() {
+    async init() {
+        // Check authentication first
+        if (!await this.checkAuth()) {
+            return; // Will redirect to login
+        }
+
+        this.displayUser();
         this.setupNavigation();
         this.setupWebSocket();
         this.initModules();
+        this.setupLogout();
+        this.setupMobileMenu();
+    },
+
+    async checkAuth() {
+        // Check if user is logged in
+        if (typeof Auth !== 'undefined' && !Auth.isLoggedIn()) {
+            window.location.href = '/login.html';
+            return false;
+        }
+
+        // Get user data
+        if (typeof Auth !== 'undefined') {
+            this.user = Auth.getUser();
+        }
+
+        return true;
+    },
+
+    displayUser() {
+        // If user info exists, display it in sidebar
+        if (this.user) {
+            const sidebarFooter = document.querySelector('.sidebar-footer');
+            if (sidebarFooter) {
+                const userInfo = document.createElement('div');
+                userInfo.className = 'user-info';
+                userInfo.innerHTML = `
+                    <div class="user-avatar">
+                        ${this.user.photoURL
+                        ? `<img src="${this.user.photoURL}" alt="${this.user.displayName}">`
+                        : `<span>${(this.user.displayName || this.user.email || 'U')[0].toUpperCase()}</span>`
+                    }
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name">${this.user.displayName || this.user.email}</span>
+                        <button class="btn-logout" id="logoutBtn">Sair</button>
+                    </div>
+                `;
+                sidebarFooter.insertBefore(userInfo, sidebarFooter.firstChild);
+            }
+        }
+    },
+
+    setupLogout() {
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn && typeof Auth !== 'undefined') {
+            logoutBtn.addEventListener('click', () => {
+                Auth.logout();
+            });
+        }
+    },
+
+    setupMobileMenu() {
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.querySelector('.sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+
+        if (!menuToggle || !sidebar) return;
+
+        // Toggle menu
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            if (overlay) overlay.classList.toggle('show');
+        });
+
+        // Close menu when clicking overlay
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('open');
+                overlay.classList.remove('show');
+            });
+        }
+
+        // Close menu when clicking nav item on mobile
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('open');
+                    if (overlay) overlay.classList.remove('show');
+                }
+            });
+        });
     },
 
     setupNavigation() {
@@ -75,6 +164,9 @@ const App = {
             case 'campaign_complete':
                 Campaigns.handleComplete(data);
                 break;
+            case 'agent_reply':
+                if (typeof Agent !== 'undefined') Agent.handleAgentReply(data);
+                break;
         }
     },
 
@@ -84,6 +176,8 @@ const App = {
         Messages.init();
         Campaigns.init();
         Reports.init();
+        if (typeof GroupSearch !== 'undefined') GroupSearch.init();
+        if (typeof Agent !== 'undefined') Agent.init();
     }
 };
 
@@ -121,35 +215,76 @@ const Toast = {
     info(message) { this.show(message, 'info'); }
 };
 
-// API Helper
+// API Helper with Auth
 const API = {
+    getHeaders() {
+        const headers = { 'Content-Type': 'application/json' };
+        if (typeof Auth !== 'undefined') {
+            const token = Auth.getToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
+        return headers;
+    },
+
     async get(url) {
-        const response = await fetch(`/api${url}`);
+        const response = await fetch(`/api${url}`, {
+            headers: this.getHeaders()
+        });
+        if (response.status === 401) {
+            window.location.href = '/login.html';
+            return { success: false };
+        }
         return response.json();
     },
 
     async post(url, data) {
         const response = await fetch(`/api${url}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: this.getHeaders(),
             body: JSON.stringify(data)
         });
+        if (response.status === 401) {
+            window.location.href = '/login.html';
+            return { success: false };
+        }
         return response.json();
     },
 
     async delete(url) {
-        const response = await fetch(`/api${url}`, { method: 'DELETE' });
+        const response = await fetch(`/api${url}`, {
+            method: 'DELETE',
+            headers: this.getHeaders()
+        });
+        if (response.status === 401) {
+            window.location.href = '/login.html';
+            return { success: false };
+        }
         return response.json();
     },
 
     async upload(url, formData) {
+        const headers = {};
+        if (typeof Auth !== 'undefined') {
+            const token = Auth.getToken();
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+        }
         const response = await fetch(`/api${url}`, {
             method: 'POST',
+            headers,
             body: formData
         });
+        if (response.status === 401) {
+            window.location.href = '/login.html';
+            return { success: false };
+        }
         return response.json();
     }
 };
 
 // Initialize app when DOM is ready
 document.addEventListener('DOMContentLoaded', () => App.init());
+

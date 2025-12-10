@@ -1,11 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const { getUserId } = require('../authMiddleware');
 
 // Get general stats
 router.get('/stats', (req, res) => {
     try {
-        const stats = db.getStats();
+        const userId = getUserId(req);
+        const stats = db.getStats(userId);
         res.json({ success: true, stats });
     } catch (err) {
         console.error('Error getting stats:', err);
@@ -16,7 +18,8 @@ router.get('/stats', (req, res) => {
 // Get all campaigns with summary
 router.get('/campaigns', (req, res) => {
     try {
-        const campaigns = db.getAllCampaigns();
+        const userId = getUserId(req);
+        const campaigns = db.getAllCampaigns(userId);
 
         const campaignsWithStats = campaigns.map(campaign => {
             const total = campaign.total_contacts || 0;

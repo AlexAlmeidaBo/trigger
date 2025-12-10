@@ -3,11 +3,13 @@ const router = express.Router();
 const db = require('../database');
 const whatsapp = require('../whatsapp');
 const ai = require('../ai-variations');
+const { getUserId } = require('../authMiddleware');
 
 // Get all templates
 router.get('/templates', (req, res) => {
     try {
-        const templates = db.getAllTemplates();
+        const userId = getUserId(req);
+        const templates = db.getAllTemplates(userId);
         res.json({ success: true, templates });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -17,13 +19,14 @@ router.get('/templates', (req, res) => {
 // Create template
 router.post('/templates', (req, res) => {
     try {
+        const userId = getUserId(req);
         const { name, content } = req.body;
 
         if (!name || !content) {
             return res.status(400).json({ success: false, error: 'Name and content are required' });
         }
 
-        const result = db.insertTemplate(name, content);
+        const result = db.insertTemplate(name, content, userId);
         res.json({
             success: true,
             id: result.lastInsertRowid,
@@ -37,8 +40,9 @@ router.post('/templates', (req, res) => {
 // Update template
 router.put('/templates/:id', (req, res) => {
     try {
+        const userId = getUserId(req);
         const { name, content } = req.body;
-        db.updateTemplate(req.params.id, name, content);
+        db.updateTemplate(req.params.id, name, content, userId);
         res.json({ success: true, message: 'Template updated' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -48,7 +52,8 @@ router.put('/templates/:id', (req, res) => {
 // Delete template
 router.delete('/templates/:id', (req, res) => {
     try {
-        db.deleteTemplate(req.params.id);
+        const userId = getUserId(req);
+        db.deleteTemplate(req.params.id, userId);
         res.json({ success: true, message: 'Template deleted' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -85,7 +90,8 @@ router.post('/ai-config', (req, res) => {
 // Get all campaigns
 router.get('/campaigns', (req, res) => {
     try {
-        const campaigns = db.getAllCampaigns();
+        const userId = getUserId(req);
+        const campaigns = db.getAllCampaigns(userId);
         res.json({ success: true, campaigns });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
@@ -109,8 +115,19 @@ let activeCampaign = null;
 // Create and start campaign
 router.post('/campaigns', async (req, res) => {
     try {
-        const { name, message, contactIds, delaySeconds, variationLevel } = req.body;
-        console.log('Creating campaign:', { name, contactIds: contactIds?.length, delaySeconds, variationLevel });
+        const userId = getUserId(req);
+        const { name, message, contactIds, delayConfig, delaySeconds, variationLevel } = req.body;
+
+        // Support both old delaySeconds and new delayConfig
+        const config = delayConfig || {
+            delayMin: delaySeconds || 5,
+            delayMax: delaySeconds || 5,
+            batchSize: 10,
+            batchDelayMin: 30,
+            batchDelayMax: 60
+        };
+
+        console.log('Creating campaign:', { name, contacts: contactIds?.length, delayConfig: config });
 
         if (!message || !contactIds || contactIds.length === 0) {
             return res.status(400).json({
@@ -120,7 +137,7 @@ router.post('/campaigns', async (req, res) => {
         }
 
         // Get contacts
-        const allContacts = db.getAllContacts();
+        const allContacts = db.getAllContacts(userId);
         const selectedContacts = allContacts.filter(c => contactIds.includes(c.id));
         console.log('Selected contacts:', selectedContacts.length);
 
@@ -131,17 +148,20 @@ router.post('/campaigns', async (req, res) => {
         // Create template if not exists
         const templateResult = db.insertTemplate(
             name || `Campaign ${Date.now()}`,
-            message
+            message,
+            userId
         );
         console.log('Template created, ID:', templateResult.lastInsertRowid);
 
-        // Create campaign
+        // Create campaign (store average delay for compatibility)
+        const avgDelay = Math.round((config.delayMin + config.delayMax) / 2);
         const campaignResult = db.insertCampaign(
             name || `Campaign ${Date.now()}`,
             templateResult.lastInsertRowid,
-            delaySeconds || 5,
+            avgDelay,
             variationLevel || 'none',
-            selectedContacts.length
+            selectedContacts.length,
+            userId
         );
 
         const campaignId = campaignResult.lastInsertRowid;
@@ -161,8 +181,8 @@ router.post('/campaigns', async (req, res) => {
         activeCampaign = campaignId;
         console.log('Campaign started, activeCampaign:', activeCampaign);
 
-        // Run campaign asynchronously
-        runCampaign(campaignId, selectedContacts, message, delaySeconds || 5, variationLevel || 'none');
+        // Run campaign asynchronously with advanced delay config
+        runCampaign(campaignId, selectedContacts, message, config, variationLevel || 'none');
 
         res.json({
             success: true,
@@ -198,11 +218,16 @@ router.post('/campaigns/:id/stop', (req, res) => {
     }
 });
 
-// Run campaign function
-async function runCampaign(campaignId, contacts, message, delaySeconds, variationLevel) {
+// Run campaign function with advanced delay
+async function runCampaign(campaignId, contacts, message, delayConfig, variationLevel) {
     console.log(`Starting campaign ${campaignId} with ${contacts.length} contacts`);
+    console.log('Delay config:', delayConfig);
+
     let sentCount = 0;
     let failedCount = 0;
+
+    // Extract delay config
+    const { delayMin, delayMax, batchSize, batchDelayMin, batchDelayMax } = delayConfig;
 
     for (let i = 0; i < contacts.length; i++) {
         // Check if campaign was stopped
@@ -212,6 +237,7 @@ async function runCampaign(campaignId, contacts, message, delaySeconds, variatio
         }
 
         const contact = contacts[i];
+        const messageNum = i + 1;
 
         try {
             // Get message variation
@@ -234,7 +260,7 @@ async function runCampaign(campaignId, contacts, message, delaySeconds, variatio
             whatsapp.broadcast({
                 type: 'campaign_progress',
                 campaignId,
-                current: i + 1,
+                current: messageNum,
                 total: contacts.length,
                 contact: contact.name,
                 status: 'sent'
@@ -252,7 +278,7 @@ async function runCampaign(campaignId, contacts, message, delaySeconds, variatio
             whatsapp.broadcast({
                 type: 'campaign_progress',
                 campaignId,
-                current: i + 1,
+                current: messageNum,
                 total: contacts.length,
                 contact: contact.name,
                 status: 'failed',
@@ -261,12 +287,32 @@ async function runCampaign(campaignId, contacts, message, delaySeconds, variatio
         }
 
         // Update campaign stats during execution
-        console.log(`Campaign ${campaignId}: Updating stats - sent=${sentCount}, failed=${failedCount}`);
         db.updateCampaignStatus(campaignId, 'running', sentCount, failedCount);
 
-        // Wait before next message
-        if (i < contacts.length - 1 && delaySeconds > 0) {
-            await new Promise(resolve => setTimeout(resolve, delaySeconds * 1000));
+        // Apply delays (only if not the last message)
+        if (i < contacts.length - 1) {
+            // Check if we need a batch pause (after every batchSize messages)
+            if (messageNum % batchSize === 0) {
+                // Batch pause - larger delay after X messages
+                const batchDelay = randomDelay(batchDelayMin, batchDelayMax);
+                console.log(`Campaign ${campaignId}: Batch pause ${batchDelay}s after ${messageNum} messages`);
+
+                whatsapp.broadcast({
+                    type: 'campaign_progress',
+                    campaignId,
+                    current: messageNum,
+                    total: contacts.length,
+                    contact: `Pausa de ${batchDelay}s...`,
+                    status: 'waiting'
+                });
+
+                await delay(batchDelay * 1000);
+            } else {
+                // Normal delay between messages
+                const msgDelay = randomDelay(delayMin, delayMax);
+                console.log(`Campaign ${campaignId}: Waiting ${msgDelay}s before next message`);
+                await delay(msgDelay * 1000);
+            }
         }
     }
 
@@ -283,6 +329,16 @@ async function runCampaign(campaignId, contacts, message, delaySeconds, variatio
         sent: sentCount,
         failed: failedCount
     });
+}
+
+// Helper: Random delay between min and max seconds
+function randomDelay(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+// Helper: Delay promise
+function delay(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = router;

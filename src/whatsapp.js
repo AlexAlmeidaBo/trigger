@@ -1,6 +1,7 @@
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const path = require('path');
+const agent = require('./agent');
 
 class WhatsAppManager {
     constructor() {
@@ -65,12 +66,30 @@ class WhatsAppManager {
             }
         });
 
-        this.client.on('ready', () => {
+        this.client.on('ready', async () => {
             console.log('WhatsApp client is ready!');
             this.isReady = true;
             this.qrCode = null;
             this.connectionStatus = 'connected';
-            this.broadcast({ type: 'status', status: 'connected' });
+
+            // Get account info
+            try {
+                const info = this.client.info;
+                this.accountInfo = {
+                    phoneNumber: info?.wid?.user || 'Desconhecido',
+                    name: info?.pushname || 'WhatsApp',
+                    platform: info?.platform || 'web'
+                };
+                console.log('Connected as:', this.accountInfo.phoneNumber, '-', this.accountInfo.name);
+            } catch (e) {
+                this.accountInfo = null;
+            }
+
+            this.broadcast({
+                type: 'status',
+                status: 'connected',
+                accountInfo: this.accountInfo
+            });
         });
 
         this.client.on('authenticated', () => {
@@ -92,9 +111,15 @@ class WhatsAppManager {
             this.broadcast({ type: 'status', status: 'disconnected', reason });
         });
 
-        this.client.on('message', (msg) => {
-            // Handle incoming messages if needed
-            console.log('Message received:', msg.body.substring(0, 50));
+        this.client.on('message', async (msg) => {
+            // Handle incoming messages
+            console.log('Message received from:', msg.from, '- Body:', msg.body.substring(0, 50));
+
+            // Agent is currently in STANDBY - uncomment to enable
+            // Only respond to private messages (not groups)
+            // if (!msg.isGroupMsg && !msg.fromMe) {
+            //     await this.handlePrivateMessage(msg);
+            // }
         });
     }
 
@@ -121,6 +146,63 @@ class WhatsAppManager {
                 client.send(message);
             }
         });
+    }
+
+    // Handle private messages with agent
+    async handlePrivateMessage(msg) {
+        // Skip if client is not ready
+        if (!this.isReady) {
+            console.log('WhatsApp not ready, skipping message');
+            return;
+        }
+
+        try {
+            // Get contact info with timeout protection
+            const contact = await Promise.race([
+                msg.getContact(),
+                new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
+            ]);
+
+            const contactId = contact.id?.user || 'unknown';
+            const contactName = contact.pushname || contact.name || contactId;
+
+            // For now, use a default user ID (in production this would be tied to account)
+            const userId = 'default';
+
+            // Check if agent is enabled
+            if (!agent.isEnabled(userId)) {
+                return; // Silently skip if agent disabled
+            }
+
+            console.log(`Agent responding to ${contactName}: ${msg.body?.substring(0, 50) || ''}`);
+
+            // Generate response using AI
+            const response = await agent.generateResponse(userId, contactId, msg.body, contactName);
+
+            if (response && this.isReady) {
+                // Send reply with error handling
+                try {
+                    await msg.reply(response);
+                    console.log(`Agent replied to ${contactName}: ${response.substring(0, 50)}`);
+
+                    // Broadcast to UI
+                    this.broadcast({
+                        type: 'agent_reply',
+                        contact: contactName,
+                        message: msg.body,
+                        response: response,
+                        timestamp: new Date()
+                    });
+                } catch (replyErr) {
+                    console.error('Failed to send reply:', replyErr.message);
+                }
+            }
+        } catch (err) {
+            // Silently handle errors to prevent server crash
+            if (err.message !== 'Timeout') {
+                console.error('Error handling private message:', err.message);
+            }
+        }
     }
 
     // Get all chats
@@ -250,7 +332,9 @@ class WhatsAppManager {
         return {
             isReady: this.isReady,
             status: this.connectionStatus,
-            hasQr: !!this.qrCode
+            hasQr: !!this.qrCode,
+            qrCode: this.qrCode,
+            accountInfo: this.accountInfo || null
         };
     }
 

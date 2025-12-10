@@ -30,16 +30,28 @@ class Database {
 
         // Create tables
         this.db.run(`
+            CREATE TABLE IF NOT EXISTS users (
+                id TEXT PRIMARY KEY,
+                email TEXT,
+                name TEXT,
+                photo_url TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                last_login DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
             CREATE TABLE IF NOT EXISTS contacts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
-                phone TEXT NOT NULL UNIQUE,
+                user_id TEXT,
+                phone TEXT NOT NULL,
                 name TEXT,
                 group_name TEXT,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, phone)
             );
 
             CREATE TABLE IF NOT EXISTS templates (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
                 name TEXT NOT NULL,
                 content TEXT NOT NULL,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -48,6 +60,7 @@ class Database {
 
             CREATE TABLE IF NOT EXISTS campaigns (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
                 name TEXT NOT NULL,
                 template_id INTEGER,
                 status TEXT DEFAULT 'pending',
@@ -63,6 +76,7 @@ class Database {
 
             CREATE TABLE IF NOT EXISTS message_logs (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
                 campaign_id INTEGER,
                 contact_id INTEGER,
                 message_content TEXT,
@@ -80,9 +94,79 @@ class Database {
             );
         `);
 
+        // Run migrations for existing databases
+        this.runMigrations();
+
         this.save();
         this.ready = true;
         console.log('Database initialized successfully');
+    }
+
+    // Migration to add user_id columns to existing tables
+    runMigrations() {
+        console.log('Running database migrations...');
+
+        // Check if user_id column exists in contacts
+        try {
+            const result = this.db.exec("PRAGMA table_info(contacts)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('user_id')) {
+                    console.log('Adding user_id column to contacts...');
+                    this.db.run("ALTER TABLE contacts ADD COLUMN user_id TEXT");
+                }
+            }
+        } catch (e) {
+            console.log('Migration contacts:', e.message);
+        }
+
+        // Check if user_id column exists in templates
+        try {
+            const result = this.db.exec("PRAGMA table_info(templates)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('user_id')) {
+                    console.log('Adding user_id column to templates...');
+                    this.db.run("ALTER TABLE templates ADD COLUMN user_id TEXT");
+                }
+            }
+        } catch (e) {
+            console.log('Migration templates:', e.message);
+        }
+
+        // Check if user_id column exists in campaigns
+        try {
+            const result = this.db.exec("PRAGMA table_info(campaigns)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('user_id')) {
+                    console.log('Adding user_id column to campaigns...');
+                    this.db.run("ALTER TABLE campaigns ADD COLUMN user_id TEXT");
+                }
+            }
+        } catch (e) {
+            console.log('Migration campaigns:', e.message);
+        }
+
+        // Check if user_id column exists in message_logs
+        try {
+            const result = this.db.exec("PRAGMA table_info(message_logs)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('user_id')) {
+                    console.log('Adding user_id column to message_logs...');
+                    this.db.run("ALTER TABLE message_logs ADD COLUMN user_id TEXT");
+                }
+            }
+        } catch (e) {
+            console.log('Migration message_logs:', e.message);
+        }
+
+        console.log('Database migrations completed');
     }
 
     save() {
@@ -154,81 +238,133 @@ class Database {
         return null;
     }
 
+    // Users
+    getUserById(userId) {
+        return this.get('SELECT * FROM users WHERE id = ?', [userId]);
+    }
+
+    insertUser(userId, email, name, photoUrl = null) {
+        this.run('INSERT OR REPLACE INTO users (id, email, name, photo_url) VALUES (?, ?, ?, ?)',
+            [userId, email, name, photoUrl]);
+    }
+
+    updateUserLastLogin(userId) {
+        this.run('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?', [userId]);
+    }
+
     // Contacts
-    getAllContacts() {
+    getAllContacts(userId = null) {
+        if (userId) {
+            return this.all('SELECT * FROM contacts WHERE user_id = ? ORDER BY name', [userId]);
+        }
         return this.all('SELECT * FROM contacts ORDER BY name');
     }
 
-    getContactById(id) {
+    getContactById(id, userId = null) {
+        if (userId) {
+            return this.get('SELECT * FROM contacts WHERE id = ? AND user_id = ?', [id, userId]);
+        }
         return this.get('SELECT * FROM contacts WHERE id = ?', [id]);
     }
 
-    getContactByPhone(phone) {
+    getContactByPhone(phone, userId = null) {
+        if (userId) {
+            return this.get('SELECT * FROM contacts WHERE phone = ? AND user_id = ?', [phone, userId]);
+        }
         return this.get('SELECT * FROM contacts WHERE phone = ?', [phone]);
     }
 
-    insertContact(phone, name, groupName = null) {
-        this.run('INSERT OR REPLACE INTO contacts (phone, name, group_name) VALUES (?, ?, ?)',
-            [phone, name, groupName]);
+    insertContact(phone, name, groupName = null, userId = null) {
+        this.run('INSERT OR REPLACE INTO contacts (user_id, phone, name, group_name) VALUES (?, ?, ?, ?)',
+            [userId, phone, name, groupName]);
         return { lastInsertRowid: this.lastInsertRowid() };
     }
 
-    insertManyContacts(contacts) {
+    insertManyContacts(contacts, userId = null) {
         for (const contact of contacts) {
-            this.run('INSERT OR REPLACE INTO contacts (phone, name, group_name) VALUES (?, ?, ?)',
-                [contact.phone, contact.name, contact.groupName || null]);
+            this.run('INSERT OR REPLACE INTO contacts (user_id, phone, name, group_name) VALUES (?, ?, ?, ?)',
+                [userId, contact.phone, contact.name, contact.groupName || null]);
         }
     }
 
-    deleteContact(id) {
-        this.run('DELETE FROM contacts WHERE id = ?', [id]);
+    deleteContact(id, userId = null) {
+        if (userId) {
+            this.run('DELETE FROM contacts WHERE id = ? AND user_id = ?', [id, userId]);
+        } else {
+            this.run('DELETE FROM contacts WHERE id = ?', [id]);
+        }
     }
 
-    clearContacts() {
-        this.run('DELETE FROM contacts');
+    clearContacts(userId = null) {
+        if (userId) {
+            this.run('DELETE FROM contacts WHERE user_id = ?', [userId]);
+        } else {
+            this.run('DELETE FROM contacts');
+        }
     }
 
     // Templates
-    getAllTemplates() {
+    getAllTemplates(userId = null) {
+        if (userId) {
+            return this.all('SELECT * FROM templates WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+        }
         return this.all('SELECT * FROM templates ORDER BY created_at DESC');
     }
 
-    getTemplateById(id) {
+    getTemplateById(id, userId = null) {
+        if (userId) {
+            return this.get('SELECT * FROM templates WHERE id = ? AND user_id = ?', [id, userId]);
+        }
         return this.get('SELECT * FROM templates WHERE id = ?', [id]);
     }
 
-    insertTemplate(name, content) {
-        this.run('INSERT INTO templates (name, content) VALUES (?, ?)', [name, content]);
-        const result = this.get('SELECT MAX(id) as id FROM templates');
+    insertTemplate(name, content, userId = null) {
+        this.run('INSERT INTO templates (user_id, name, content) VALUES (?, ?, ?)', [userId, name, content]);
+        const result = this.get('SELECT MAX(id) as id FROM templates WHERE user_id = ?', [userId]);
         const id = result?.id || 1;
         console.log('insertTemplate - new ID:', id);
         return { lastInsertRowid: id };
     }
 
-    updateTemplate(id, name, content) {
-        this.run('UPDATE templates SET name = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-            [name, content, id]);
+    updateTemplate(id, name, content, userId = null) {
+        if (userId) {
+            this.run('UPDATE templates SET name = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ? AND user_id = ?',
+                [name, content, id, userId]);
+        } else {
+            this.run('UPDATE templates SET name = ?, content = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+                [name, content, id]);
+        }
     }
 
-    deleteTemplate(id) {
-        this.run('DELETE FROM templates WHERE id = ?', [id]);
+    deleteTemplate(id, userId = null) {
+        if (userId) {
+            this.run('DELETE FROM templates WHERE id = ? AND user_id = ?', [id, userId]);
+        } else {
+            this.run('DELETE FROM templates WHERE id = ?', [id]);
+        }
     }
 
     // Campaigns
-    getAllCampaigns() {
+    getAllCampaigns(userId = null) {
+        if (userId) {
+            return this.all('SELECT * FROM campaigns WHERE user_id = ? ORDER BY created_at DESC', [userId]);
+        }
         return this.all('SELECT * FROM campaigns ORDER BY created_at DESC');
     }
 
-    getCampaignById(id) {
+    getCampaignById(id, userId = null) {
+        if (userId) {
+            return this.get('SELECT * FROM campaigns WHERE id = ? AND user_id = ?', [id, userId]);
+        }
         return this.get('SELECT * FROM campaigns WHERE id = ?', [id]);
     }
 
-    insertCampaign(name, templateId, delaySeconds, variationLevel, totalContacts) {
+    insertCampaign(name, templateId, delaySeconds, variationLevel, totalContacts, userId = null) {
         this.run(`
-            INSERT INTO campaigns (name, template_id, delay_seconds, variation_level, total_contacts)
-            VALUES (?, ?, ?, ?, ?)
-        `, [name, templateId, delaySeconds, variationLevel, totalContacts]);
-        const result = this.get('SELECT MAX(id) as id FROM campaigns');
+            INSERT INTO campaigns (user_id, name, template_id, delay_seconds, variation_level, total_contacts)
+            VALUES (?, ?, ?, ?, ?, ?)
+        `, [userId, name, templateId, delaySeconds, variationLevel, totalContacts]);
+        const result = this.get('SELECT MAX(id) as id FROM campaigns WHERE user_id = ?', [userId]);
         const id = result?.id || 1;
         console.log('insertCampaign - new ID:', id);
         return { lastInsertRowid: id };
@@ -306,11 +442,20 @@ class Database {
     }
 
     // Stats
-    getStats() {
-        const totalContacts = this.get('SELECT COUNT(*) as count FROM contacts')?.count || 0;
-        const totalCampaigns = this.get('SELECT COUNT(*) as count FROM campaigns')?.count || 0;
-        const sentResult = this.get('SELECT SUM(sent_count) as count FROM campaigns');
-        const failedResult = this.get('SELECT SUM(failed_count) as count FROM campaigns');
+    getStats(userId = null) {
+        let totalContacts, totalCampaigns, sentResult, failedResult;
+
+        if (userId) {
+            totalContacts = this.get('SELECT COUNT(*) as count FROM contacts WHERE user_id = ?', [userId])?.count || 0;
+            totalCampaigns = this.get('SELECT COUNT(*) as count FROM campaigns WHERE user_id = ?', [userId])?.count || 0;
+            sentResult = this.get('SELECT SUM(sent_count) as count FROM campaigns WHERE user_id = ?', [userId]);
+            failedResult = this.get('SELECT SUM(failed_count) as count FROM campaigns WHERE user_id = ?', [userId]);
+        } else {
+            totalContacts = this.get('SELECT COUNT(*) as count FROM contacts')?.count || 0;
+            totalCampaigns = this.get('SELECT COUNT(*) as count FROM campaigns')?.count || 0;
+            sentResult = this.get('SELECT SUM(sent_count) as count FROM campaigns');
+            failedResult = this.get('SELECT SUM(failed_count) as count FROM campaigns');
+        }
 
         return {
             totalContacts,

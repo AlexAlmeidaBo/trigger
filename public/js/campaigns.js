@@ -130,15 +130,19 @@ const Campaigns = {
             return;
         }
 
-        // Get config
+        // Get delay config
         const name = document.getElementById('campaignName').value || `Campanha ${new Date().toLocaleString()}`;
-        const delayValue = parseInt(document.getElementById('delayValue').value) || 5;
-        const delayUnit = document.getElementById('delayUnit').value;
-        const delaySeconds = delayUnit === 'minutes' ? delayValue * 60 : delayValue;
+        const delayMin = parseInt(document.getElementById('delayMin')?.value) || 5;
+        const delayMax = parseInt(document.getElementById('delayMax')?.value) || 15;
+        const batchSize = parseInt(document.getElementById('batchSize')?.value) || 10;
+        const batchDelayMin = parseInt(document.getElementById('batchDelayMin')?.value) || 30;
+        const batchDelayMax = parseInt(document.getElementById('batchDelayMax')?.value) || 60;
         const variationLevel = Messages.getVariationLevel();
 
         // Confirm
-        const confirmMsg = `Enviar mensagem para ${this.selectedContacts.length} contatos com delay de ${delayValue} ${delayUnit === 'minutes' ? 'minutos' : 'segundos'}?`;
+        const confirmMsg = `Enviar mensagem para ${this.selectedContacts.length} contatos?\n\n` +
+            `• Delay: ${delayMin}-${delayMax} segundos entre mensagens\n` +
+            `• Pausa: ${batchDelayMin}-${batchDelayMax} seg após cada ${batchSize} mensagens`;
         if (!confirm(confirmMsg)) return;
 
         try {
@@ -148,7 +152,13 @@ const Campaigns = {
                 name,
                 message,
                 contactIds: this.selectedContacts,
-                delaySeconds,
+                delayConfig: {
+                    delayMin,
+                    delayMax,
+                    batchSize,
+                    batchDelayMin,
+                    batchDelayMax
+                },
                 variationLevel
             });
 
