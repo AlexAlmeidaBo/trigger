@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const agent = require('../agent');
+const db = require('../database');
 const { getUserId } = require('../authMiddleware');
 
 // Get agent config
@@ -8,16 +9,29 @@ router.get('/config', (req, res) => {
     try {
         const userId = getUserId(req);
         const config = agent.getConfig(userId);
-        res.json({ success: true, config });
+        const isPremium = db.isPremiumUser(userId);
+        res.json({ success: true, config, isPremium });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// Update agent config
+// Update agent config (premium only)
 router.post('/config', (req, res) => {
     try {
         const userId = getUserId(req);
+
+        // Check if user has premium access
+        const isPremium = db.isPremiumUser(userId);
+        if (!isPremium) {
+            return res.status(403).json({
+                success: false,
+                error: 'Agente IA é um recurso exclusivo para assinantes.',
+                code: 'PREMIUM_REQUIRED',
+                upgradeUrl: 'https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee'
+            });
+        }
+
         const { enabled, prompt } = req.body;
 
         const config = agent.setConfig(userId, { enabled, prompt });

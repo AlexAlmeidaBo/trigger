@@ -106,6 +106,16 @@ class Database {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(user_id)
             );
+
+            CREATE TABLE IF NOT EXISTS daily_usage (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                usage_date TEXT NOT NULL,
+                messages_sent INTEGER DEFAULT 0,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, usage_date)
+            );
         `);
 
         // Run migrations for existing databases
@@ -578,6 +588,58 @@ class Database {
                 WHERE email = ?
             `, [userId, email]);
         }
+    }
+
+    // Daily Usage tracking for freemium
+    getDailyUsage(userId) {
+        const today = new Date().toISOString().split('T')[0];
+        return this.get('SELECT * FROM daily_usage WHERE user_id = ? AND usage_date = ?', [userId, today]);
+    }
+
+    incrementDailyUsage(userId, count = 1) {
+        const today = new Date().toISOString().split('T')[0];
+        const existing = this.getDailyUsage(userId);
+
+        if (existing) {
+            this.run(`
+                UPDATE daily_usage
+                SET messages_sent = messages_sent + ?, updated_at = CURRENT_TIMESTAMP
+                WHERE user_id = ? AND usage_date = ?
+            `, [count, userId, today]);
+        } else {
+            this.run(`
+                INSERT INTO daily_usage (user_id, usage_date, messages_sent)
+                VALUES (?, ?, ?)
+            `, [userId, today, count]);
+        }
+
+        return this.getDailyUsage(userId);
+    }
+
+    getMessagesRemaining(userId, dailyLimit = 15) {
+        const usage = this.getDailyUsage(userId);
+        const sent = usage?.messages_sent || 0;
+        return Math.max(0, dailyLimit - sent);
+    }
+
+    canSendMessages(userId, count = 1, dailyLimit = 15) {
+        // Check if user has active subscription (unlimited)
+        if (this.isSubscriptionActive(userId)) {
+            return { allowed: true, remaining: Infinity, isPremium: true };
+        }
+
+        const remaining = this.getMessagesRemaining(userId, dailyLimit);
+        return {
+            allowed: remaining >= count,
+            remaining: remaining,
+            isPremium: false,
+            limit: dailyLimit
+        };
+    }
+
+    // Check if user has premium features (subscription active)
+    isPremiumUser(userId) {
+        return this.isSubscriptionActive(userId);
     }
 }
 

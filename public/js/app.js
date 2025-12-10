@@ -21,12 +21,12 @@ const App = {
     },
 
     async checkAuth() {
-        // Admin emails that bypass subscription check
+        // Admin emails that bypass all checks
         const ADMIN_EMAILS = ['alec.almeida201@gmail.com'];
 
-        // Skip subscription check if already on blocked page
+        // Skip check if on login/landing pages
         const currentPath = window.location.pathname;
-        if (currentPath.includes('subscription-blocked') || currentPath.includes('login') || currentPath.includes('landing')) {
+        if (currentPath.includes('login') || currentPath.includes('landing')) {
             return true;
         }
 
@@ -41,25 +41,25 @@ const App = {
             this.user = Auth.getUser();
         }
 
-        // Skip subscription check for admin accounts
+        // Skip all checks for admin accounts
         if (this.user && ADMIN_EMAILS.includes(this.user.email)) {
-            console.log('Admin account detected, skipping subscription check');
+            console.log('Admin account detected');
+            this.isPremium = true;
             return true;
         }
 
-        // Check subscription status (only if not already checking)
-        if (typeof Auth !== 'undefined' && Auth.checkSubscription && !window._checkingSubscription) {
-            window._checkingSubscription = true;
-            try {
-                const subStatus = await Auth.checkSubscription();
-                if (!subStatus.active) {
-                    console.log('Subscription not active:', subStatus.reason);
-                    window.location.href = '/subscription-blocked.html';
-                    return false;
-                }
-            } finally {
-                window._checkingSubscription = false;
+        // Freemium model: allow access but fetch limits
+        try {
+            const response = await Auth.fetchWithAuth('/api/subscription/limits');
+            if (response.ok) {
+                const limits = await response.json();
+                this.isPremium = limits.isPremium;
+                this.userLimits = limits;
+                console.log('User limits:', limits);
             }
+        } catch (e) {
+            console.log('Could not fetch limits:', e);
+            this.isPremium = false;
         }
 
         return true;

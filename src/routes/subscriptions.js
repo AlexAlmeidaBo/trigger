@@ -142,4 +142,45 @@ router.get('/status', (req, res) => {
     }
 });
 
+// Get user limits for freemium model
+router.get('/limits', (req, res) => {
+    try {
+        const userId = req.user?.uid;
+        const DAILY_LIMIT = 15;
+
+        if (!userId) {
+            return res.json({
+                isPremium: false,
+                messagesRemaining: 0,
+                dailyLimit: DAILY_LIMIT,
+                canSendMessages: false,
+                features: {
+                    aiVariations: false,
+                    aiAgent: false,
+                    unlimitedMessages: false
+                }
+            });
+        }
+
+        const limits = db.canSendMessages(userId, 1, DAILY_LIMIT);
+        const isPremium = db.isPremiumUser(userId);
+
+        res.json({
+            isPremium: isPremium,
+            messagesRemaining: limits.remaining,
+            dailyLimit: DAILY_LIMIT,
+            canSendMessages: limits.allowed,
+            features: {
+                aiVariations: isPremium,
+                aiAgent: isPremium,
+                unlimitedMessages: isPremium
+            }
+        });
+    } catch (error) {
+        console.error('[SUBSCRIPTION] Limits error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 module.exports = router;
+

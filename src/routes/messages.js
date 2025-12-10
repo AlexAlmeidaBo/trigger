@@ -60,10 +60,22 @@ router.delete('/templates/:id', (req, res) => {
     }
 });
 
-// Generate AI variations
+// Generate AI variations (premium only)
 router.post('/variations', async (req, res) => {
     try {
+        const userId = getUserId(req);
         const { message, level } = req.body;
+
+        // Check if user has premium access
+        const isPremium = db.isPremiumUser(userId);
+        if (!isPremium) {
+            return res.status(403).json({
+                success: false,
+                error: 'Texto Mágico é um recurso exclusivo para assinantes.',
+                code: 'PREMIUM_REQUIRED',
+                upgradeUrl: 'https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee'
+            });
+        }
 
         if (!message) {
             return res.status(400).json({ success: false, error: 'Message is required' });
@@ -136,9 +148,31 @@ router.post('/campaigns', async (req, res) => {
             });
         }
 
+        // Check message limits for freemium users
+        const DAILY_LIMIT = 15;
+        const limits = db.canSendMessages(userId, contactIds.length, DAILY_LIMIT);
+
+        if (!limits.allowed) {
+            return res.status(403).json({
+                success: false,
+                error: `Limite diário atingido! Você pode enviar apenas ${DAILY_LIMIT} mensagens por dia no plano grátis.`,
+                code: 'DAILY_LIMIT_REACHED',
+                remaining: limits.remaining,
+                limit: limits.limit,
+                upgradeUrl: 'https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee'
+            });
+        }
+
+        // For free users, limit the number of contacts they can send to
+        let contactsToSend = contactIds;
+        if (!limits.isPremium && contactIds.length > limits.remaining) {
+            contactsToSend = contactIds.slice(0, limits.remaining);
+            console.log(`Free user: limiting from ${contactIds.length} to ${contactsToSend.length} contacts`);
+        }
+
         // Get contacts
         const allContacts = db.getAllContacts(userId);
-        const selectedContacts = allContacts.filter(c => contactIds.includes(c.id));
+        const selectedContacts = allContacts.filter(c => contactsToSend.includes(c.id));
         console.log('Selected contacts:', selectedContacts.length);
 
         if (selectedContacts.length === 0) {
