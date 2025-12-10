@@ -94,7 +94,7 @@ const App = {
             item.addEventListener('click', () => {
                 if (window.innerWidth <= 768) {
                     sidebar.classList.remove('open');
-                    if (overlay) overlay.classList.remove('show');
+                    if (overlay) overlay.classList.remove('active');
                 }
             });
         });

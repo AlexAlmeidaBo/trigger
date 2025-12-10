@@ -1203,3 +1203,46 @@ button {
         transform: translateX(0);
     }
 }
+
+/* Mobile sidebar when open - show full width with names */
+@media (max-width: 768px) {
+    .sidebar.open {
+        width: 280px !important;
+    }
+
+    .sidebar.open .nav-item span {
+        display: inline !important;
+        opacity: 1 !important;
+    }
+
+    .sidebar.open .logo-text {
+        display: inline !important;
+        opacity: 1 !important;
+    }
+
+    .sidebar.open .sidebar-header {
+        padding: 20px !important;
+    }
+
+    .sidebar.open .nav-menu {
+        padding: 0 16px !important;
+    }
+
+    .sidebar.open .nav-item {
+        padding: 12px 16px !important;
+        gap: 12px !important;
+    }
+
+    .sidebar.open .sidebar-footer {
+        padding: 16px !important;
+    }
+
+    .sidebar.open .user-info {
+        display: flex !important;
+        gap: 12px !important;
+    }
+
+    .sidebar.open .user-details {
+        display: block !important;
+    }
+}
