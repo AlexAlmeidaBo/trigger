@@ -1002,3 +1002,149 @@ button {
         gap: 4px;
     }
 }
+
+/* ============================
+   Mobile Fixes - Avatar and Sidebar
+   ============================ */
+
+/* Fix sidebar in mobile - hidden by default */
+@media (max-width: 768px) {
+    /* Hide sidebar completely on mobile when closed */
+    .sidebar {
+        position: fixed !important;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 280px !important;
+        transform: translateX(-100%) !important;
+        z-index: 1000;
+        overflow: hidden;
+    }
+
+    .sidebar.open {
+        transform: translateX(0) !important;
+    }
+
+    /* Fix user avatar overflow */
+    .sidebar .user-info,
+    .user-info {
+        position: relative;
+        overflow: hidden !important;
+    }
+
+    .user-avatar,
+    .sidebar .user-avatar {
+        width: 40px !important;
+        height: 40px !important;
+        min-width: 40px !important;
+        border-radius: 50% !important;
+        overflow: hidden !important;
+        flex-shrink: 0 !important;
+    }
+
+    .user-avatar img {
+        width: 100% !important;
+        height: 100% !important;
+        object-fit: cover !important;
+    }
+
+    /* Main content takes full width */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 70px 12px 80px !important;
+    }
+
+    /* Cards full width */
+    .card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin-bottom: 12px;
+    }
+
+    /* Form inputs full width */
+    input, select, textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+
+    /* Stats grid */
+    .stats-grid {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .stat-card {
+        padding: 12px !important;
+    }
+
+    .stat-value {
+        font-size: 1.5rem !important;
+    }
+
+    .stat-label {
+        font-size: 0.75rem !important;
+    }
+
+    /* Table responsive */
+    .contacts-table-wrapper {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    /* Header actions */
+    .card-header {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 8px !important;
+    }
+
+    .header-actions {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    /* Buttons in header */
+    .header-actions .btn {
+        padding: 8px 12px !important;
+        font-size: 0.8rem !important;
+    }
+
+    /* Import card */
+    .import-card {
+        padding: 16px !important;
+    }
+
+    .upload-area {
+        padding: 20px 12px !important;
+    }
+
+    .upload-area svg {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    /* Section header */
+    .section-header {
+        margin-bottom: 16px !important;
+    }
+
+    .section-header h1 {
+        font-size: 1.3rem !important;
+    }
+
+    /* Theme toggle fixed position */
+    .theme-toggle {
+        position: fixed !important;
+        bottom: 16px !important;
+        right: 16px !important;
+        z-index: 999 !important;
+    }
+
+    /* Sidebar footer with user - hide on collapsed */
+    .sidebar-footer {
+        overflow: hidden !important;
+    }
+}
