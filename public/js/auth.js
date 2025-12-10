@@ -189,7 +189,7 @@ const Auth = {
         this.currentUser = null;
         localStorage.removeItem('authToken');
         localStorage.removeItem('userData');
-        window.location.href = '/login.html';
+        window.location.href = '/landing.html';
     },
 
     // Get auth token for API requests
