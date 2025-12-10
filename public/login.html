@@ -317,6 +317,17 @@
             }
         }
     </style>
+
+    <script>
+        // Check if user is already logged in
+        (function() {
+            const token = localStorage.getItem('authToken');
+            const userData = localStorage.getItem('userData');
+            if (token && userData) {
+                window.location.replace('/index.html');
+            }
+        })();
+    </script>
 </head>
 
 <body>
