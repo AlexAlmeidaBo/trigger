@@ -21,6 +21,9 @@ const App = {
     },
 
     async checkAuth() {
+        // Admin emails that bypass subscription check
+        const ADMIN_EMAILS = ['alec.almeida201@gmail.com'];
+
         // Skip subscription check if already on blocked page
         const currentPath = window.location.pathname;
         if (currentPath.includes('subscription-blocked') || currentPath.includes('login') || currentPath.includes('landing')) {
@@ -36,6 +39,12 @@ const App = {
         // Get user data
         if (typeof Auth !== 'undefined') {
             this.user = Auth.getUser();
+        }
+
+        // Skip subscription check for admin accounts
+        if (this.user && ADMIN_EMAILS.includes(this.user.email)) {
+            console.log('Admin account detected, skipping subscription check');
+            return true;
         }
 
         // Check subscription status (only if not already checking)
