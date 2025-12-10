@@ -77,6 +77,86 @@ const Auth = {
         }
     },
 
+    // Create user with email and password
+    async createUserWithEmail(email, password) {
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+            throw new Error('Firebase não está configurado. Verifique firebase-config.js');
+        }
+
+        try {
+            const result = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            const user = result.user;
+            const token = await user.getIdToken();
+
+            this.currentUser = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.email.split('@')[0],
+                photoURL: null
+            };
+
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userData', JSON.stringify(this.currentUser));
+
+            // Register user in backend
+            await this.registerUser(token);
+
+            return this.currentUser;
+        } catch (error) {
+            console.error('Email registration error:', error);
+            if (error.code === 'auth/email-already-in-use') {
+                throw new Error('Este email já está cadastrado. Tente fazer login.');
+            }
+            if (error.code === 'auth/invalid-email') {
+                throw new Error('Email inválido.');
+            }
+            if (error.code === 'auth/weak-password') {
+                throw new Error('A senha deve ter no mínimo 6 caracteres.');
+            }
+            throw new Error('Erro ao criar conta. Tente novamente.');
+        }
+    },
+
+    // Login with email and password
+    async loginWithEmail(email, password) {
+        if (typeof firebase === 'undefined' || !firebase.auth) {
+            throw new Error('Firebase não está configurado. Verifique firebase-config.js');
+        }
+
+        try {
+            const result = await firebase.auth().signInWithEmailAndPassword(email, password);
+            const user = result.user;
+            const token = await user.getIdToken();
+
+            this.currentUser = {
+                uid: user.uid,
+                email: user.email,
+                displayName: user.displayName || user.email.split('@')[0],
+                photoURL: user.photoURL
+            };
+
+            localStorage.setItem('authToken', token);
+            localStorage.setItem('userData', JSON.stringify(this.currentUser));
+
+            return this.currentUser;
+        } catch (error) {
+            console.error('Email login error:', error);
+            if (error.code === 'auth/user-not-found') {
+                throw new Error('Usuário não encontrado. Verifique o email ou crie uma conta.');
+            }
+            if (error.code === 'auth/wrong-password') {
+                throw new Error('Senha incorreta.');
+            }
+            if (error.code === 'auth/invalid-email') {
+                throw new Error('Email inválido.');
+            }
+            if (error.code === 'auth/too-many-requests') {
+                throw new Error('Muitas tentativas. Aguarde alguns minutos e tente novamente.');
+            }
+            throw new Error('Erro ao fazer login. Tente novamente.');
+        }
+    },
+
     // Register user in backend
     async registerUser(token) {
         try {
