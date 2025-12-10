@@ -601,3 +601,108 @@ button {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* Improved Modal Sizes */
+.modal-content.modal-lg {
+    max-width: 900px !important;
+    width: 95% !important;
+}
+
+.modal-lg .modal-body {
+    max-height: 70vh !important;
+    min-height: 400px;
+    padding: 24px !important;
+}
+
+.modal-lg .modal-header {
+    padding: 20px 24px !important;
+}
+
+.modal-lg .modal-header h3 {
+    font-size: 1.5rem !important;
+}
+
+.modal-lg .modal-footer {
+    padding: 16px 24px !important;
+}
+
+/* Contact Selection Modal Improvements */
+.modal-selection-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    padding: 16px !important;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    margin-bottom: 20px !important;
+}
+
+.modal-selection-actions .btn {
+    padding: 10px 20px !important;
+    font-size: 0.9rem !important;
+}
+
+.modal-contacts-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 12px;
+}
+
+.modal-contact-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px !important;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.modal-contact-item:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--accent);
+}
+
+.modal-contact-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--accent);
+}
+
+.modal-contact-item strong {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 2px;
+}
+
+.modal-contact-item small {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+/* Selection count badge */
+.selection-count {
+    background: var(--accent);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+/* Modal footer buttons */
+.modal-footer .btn {
+    padding: 12px 24px !important;
+    font-size: 1rem !important;
+}
+
+@media (max-width: 768px) {
+    .modal-contacts-list {
+        grid-template-columns: 1fr;
+    }
+    .modal-content.modal-lg {
+        max-width: 100% !important;
+    }
+}
