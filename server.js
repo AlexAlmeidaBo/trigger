@@ -26,6 +26,12 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Redirect root to landing page
+app.get('/', (req, res) => {
+    res.redirect('/landing.html');
+});
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Auth middleware for API routes
