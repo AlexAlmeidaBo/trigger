@@ -160,16 +160,18 @@ Responda APENAS com as variações, uma por linha, sem numeração, sem aspas, s
         }
     }
 
-    // Fallback when API fails
+    // Fallback when API fails - improved version that always generates variations
     generateSimulatedVariations(message, level) {
-        console.log('Using simulated variations');
+        console.log('Using simulated variations for message:', message);
         const variations = [];
         const count = level === 'low' ? 3 : level === 'high' ? 5 : 4;
 
-        // Simple word replacements for simulation
+        // Word replacements dictionary (expanded)
         const replacements = {
             'Olá': ['Oi', 'Oie', 'E aí', 'Hey'],
             'olá': ['oi', 'oie', 'e aí', 'hey'],
+            'Oi': ['Olá', 'Oie', 'E aí', 'Hey'],
+            'oi': ['olá', 'oie', 'e aí', 'hey'],
             'promoção': ['oferta', 'desconto', 'oportunidade', 'condição especial'],
             'especial': ['exclusiva', 'incrível', 'imperdível', 'única'],
             'Confira': ['Veja', 'Aproveite', 'Não perca', 'Descubra'],
@@ -179,34 +181,62 @@ Responda APENAS com as variações, uma por linha, sem numeração, sem aspas, s
             'temos': ['preparamos', 'trouxemos', 'temos aqui'],
             'Bom dia': ['Olá', 'Oi', 'Oie'],
             'Boa tarde': ['Olá', 'Oi', 'Oie'],
-            'Boa noite': ['Olá', 'Oi', 'Oie']
+            'Boa noite': ['Olá', 'Oi', 'Oie'],
+            'teste': ['test', 'verificação', 'checagem'],
+            'mensagem': ['msg', 'texto', 'comunicação'],
+            'testar': ['verificar', 'checar', 'validar'],
+            'bot': ['robô', 'assistente', 'sistema']
         };
+
+        // Prefixes to add variation
+        const prefixes = ['', '👋 ', '✨ ', '📢 ', '💬 ', '🔔 '];
+
+        // Suffixes to add variation
+        const suffixes = ['', ' 😊', ' 👍', ' ✅', ' 💪', '!'];
 
         for (let i = 0; i < count; i++) {
             let variation = message;
+            let changed = false;
 
+            // Try word replacements
             Object.entries(replacements).forEach(([original, options]) => {
                 if (variation.includes(original)) {
                     const replacement = options[Math.floor(Math.random() * options.length)];
                     variation = variation.replace(original, replacement);
+                    changed = true;
                 }
             });
 
-            // Add some structural variations
-            if (i % 2 === 0 && variation.includes('!')) {
-                variation = variation.replace('!', '.');
+            // If no word replacements worked, add prefix/suffix variations
+            if (!changed || i > 0) {
+                const prefix = prefixes[i % prefixes.length];
+                const suffix = suffixes[i % suffixes.length];
+
+                // Also vary punctuation
+                if (variation.endsWith('!')) {
+                    variation = variation.slice(0, -1) + '.';
+                } else if (variation.endsWith('.')) {
+                    variation = variation.slice(0, -1) + '!';
+                }
+
+                variation = prefix + variation + suffix;
             }
 
+            // Ensure we don't add duplicates
             if (!variations.includes(variation) && variation !== message) {
                 variations.push(variation);
             }
         }
 
-        // Always include at least the original if we couldn't generate enough
+        // Always ensure we have at least some variations
         if (variations.length === 0) {
-            variations.push(message);
+            // Force create variations with different prefixes/suffixes
+            variations.push('👋 ' + message);
+            variations.push(message + ' 😊');
+            variations.push('✨ ' + message + '!');
         }
 
+        console.log('Generated simulated variations:', variations);
         return variations;
     }
 
