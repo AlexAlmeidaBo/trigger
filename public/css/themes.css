@@ -1246,3 +1246,60 @@ button {
         display: block !important;
     }
 }
+
+/* Fix connection status and agent badge on mobile */
+@media (max-width: 768px) {
+    /* Connection status - only show dot when sidebar closed */
+    .sidebar .connection-status {
+        justify-content: center;
+    }
+
+    .sidebar .status-text {
+        display: none;
+    }
+
+    .sidebar.open .status-text {
+        display: inline !important;
+    }
+
+    .sidebar.open .connection-status {
+        justify-content: flex-start !important;
+        gap: 10px;
+    }
+
+    /* Agent badge fix */
+    .sidebar .badge-soon {
+        display: none;
+    }
+
+    .sidebar.open .badge-soon {
+        display: inline-flex !important;
+        font-size: 0.65rem;
+        padding: 2px 6px;
+        background: var(--warning, #f0ad4e);
+        color: #000;
+        border-radius: 4px;
+        font-weight: 600;
+    }
+
+    /* Status dot always visible */
+    .status-dot {
+        width: 10px !important;
+        height: 10px !important;
+        min-width: 10px !important;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .status-dot.disconnected {
+        background: #f0ad4e !important;
+    }
+
+    .status-dot.connected {
+        background: #28a745 !important;
+    }
+
+    .status-dot.connecting {
+        background: #17a2b8 !important;
+    }
+}
