@@ -69,7 +69,7 @@ const App = {
     },
 
     setupMobileMenu() {
-        const menuToggle = document.getElementById('menuToggle');
+        const menuToggle = document.getElementById('mobileMenuToggle');
         const sidebar = document.querySelector('.sidebar');
         const overlay = document.getElementById('sidebarOverlay');
 
@@ -78,14 +78,14 @@ const App = {
         // Toggle menu
         menuToggle.addEventListener('click', () => {
             sidebar.classList.toggle('open');
-            if (overlay) overlay.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('active');
         });
 
         // Close menu when clicking overlay
         if (overlay) {
             overlay.addEventListener('click', () => {
                 sidebar.classList.remove('open');
-                overlay.classList.remove('show');
+                overlay.classList.remove('active');
             });
         }
 
