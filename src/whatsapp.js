@@ -233,41 +233,64 @@ class WhatsAppManager {
         console.log(`[GROUP] Fetching participants for group: ${chat.name}`);
 
         const participants = [];
+
+        // Get puppeteer page from client
+        const page = this.client.pupPage;
+
         for (const participant of chat.participants) {
+            const phone = participant.id.user;
+            let contactName = phone; // default to phone number
+
             try {
-                const contact = await this.client.getContactById(participant.id._serialized);
+                // Try to get contact info directly from WhatsApp Store
+                const contactInfo = await page.evaluate(async (contactId) => {
+                    try {
+                        // Get contact from Store directly
+                        const contact = await window.Store.Contact.get(contactId);
+                        if (contact) {
+                            return {
+                                pushname: contact.pushname || null,
+                                name: contact.name || null,
+                                shortName: contact.shortName || null,
+                                verifiedName: contact.verifiedName || null,
+                                formattedName: contact.formattedName || null,
+                                notifyName: contact.notifyName || null
+                            };
+                        }
+                        return null;
+                    } catch (e) {
+                        return null;
+                    }
+                }, participant.id._serialized);
 
-                // Log all available name properties for debugging
-                console.log(`[CONTACT] Phone: ${participant.id.user}`);
-                console.log(`  - pushname: ${contact.pushname}`);
-                console.log(`  - name: ${contact.name}`);
-                console.log(`  - shortName: ${contact.shortName}`);
-                console.log(`  - verifiedName: ${contact.verifiedName}`);
-                console.log(`  - formattedName: ${contact.formattedName}`);
+                if (contactInfo) {
+                    console.log(`[CONTACT] Phone: ${phone}`);
+                    console.log(`  - pushname: ${contactInfo.pushname}`);
+                    console.log(`  - name: ${contactInfo.name}`);
+                    console.log(`  - notifyName: ${contactInfo.notifyName}`);
+                    console.log(`  - formattedName: ${contactInfo.formattedName}`);
 
-                // Try multiple name sources
-                const contactName = contact.pushname
-                    || contact.name
-                    || contact.shortName
-                    || contact.verifiedName
-                    || contact.formattedName
-                    || participant.id.user;
+                    contactName = contactInfo.pushname
+                        || contactInfo.name
+                        || contactInfo.notifyName
+                        || contactInfo.shortName
+                        || contactInfo.verifiedName
+                        || contactInfo.formattedName
+                        || phone;
 
-                console.log(`  => Using: ${contactName}`);
-
-                participants.push({
-                    phone: participant.id.user,
-                    name: contactName,
-                    isAdmin: participant.isAdmin || participant.isSuperAdmin
-                });
+                    console.log(`  => Using: ${contactName}`);
+                } else {
+                    console.log(`[CONTACT] No data found for ${phone}`);
+                }
             } catch (err) {
-                console.log(`[CONTACT] Error fetching ${participant.id.user}: ${err.message}`);
-                participants.push({
-                    phone: participant.id.user,
-                    name: participant.id.user,
-                    isAdmin: false
-                });
+                console.log(`[CONTACT] Error fetching ${phone}: ${err.message}`);
             }
+
+            participants.push({
+                phone: phone,
+                name: contactName,
+                isAdmin: participant.isAdmin || participant.isSuperAdmin
+            });
         }
 
         console.log(`[GROUP] Total participants: ${participants.length}`);
