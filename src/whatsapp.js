@@ -230,16 +230,38 @@ class WhatsAppManager {
         const chat = await this.client.getChatById(groupId);
         if (!chat.isGroup) throw new Error('Not a group');
 
+        console.log(`[GROUP] Fetching participants for group: ${chat.name}`);
+
         const participants = [];
         for (const participant of chat.participants) {
             try {
                 const contact = await this.client.getContactById(participant.id._serialized);
+
+                // Log all available name properties for debugging
+                console.log(`[CONTACT] Phone: ${participant.id.user}`);
+                console.log(`  - pushname: ${contact.pushname}`);
+                console.log(`  - name: ${contact.name}`);
+                console.log(`  - shortName: ${contact.shortName}`);
+                console.log(`  - verifiedName: ${contact.verifiedName}`);
+                console.log(`  - formattedName: ${contact.formattedName}`);
+
+                // Try multiple name sources
+                const contactName = contact.pushname
+                    || contact.name
+                    || contact.shortName
+                    || contact.verifiedName
+                    || contact.formattedName
+                    || participant.id.user;
+
+                console.log(`  => Using: ${contactName}`);
+
                 participants.push({
                     phone: participant.id.user,
-                    name: contact.pushname || contact.name || participant.id.user,
+                    name: contactName,
                     isAdmin: participant.isAdmin || participant.isSuperAdmin
                 });
             } catch (err) {
+                console.log(`[CONTACT] Error fetching ${participant.id.user}: ${err.message}`);
                 participants.push({
                     phone: participant.id.user,
                     name: participant.id.user,
@@ -248,6 +270,7 @@ class WhatsAppManager {
             }
         }
 
+        console.log(`[GROUP] Total participants: ${participants.length}`);
         return participants;
     }
 
