@@ -87,6 +87,52 @@ const App = {
                 sidebarFooter.insertBefore(userInfo, sidebarFooter.firstChild);
             }
         }
+
+        // Show plan banner
+        this.showPlanBanner();
+    },
+
+    showPlanBanner() {
+        const sidebarFooter = document.querySelector('.sidebar-footer');
+        if (!sidebarFooter) return;
+
+        // Remove existing banner if any
+        const existingBanner = document.querySelector('.plan-banner');
+        if (existingBanner) existingBanner.remove();
+
+        const isPremium = this.isPremium;
+        const limits = this.userLimits || { messagesRemaining: 15, dailyLimit: 15 };
+
+        const banner = document.createElement('div');
+        banner.className = `plan-banner ${isPremium ? 'premium' : ''}`;
+
+        if (isPremium) {
+            banner.innerHTML = `
+                <div class="plan-badge premium">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                    </svg>
+                    <span>Plano PRO</span>
+                </div>
+                <div class="plan-limit">Mensagens ilimitadas</div>
+            `;
+        } else {
+            banner.innerHTML = `
+                <div class="plan-badge">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                    </svg>
+                    <span>Plano Gratuito</span>
+                </div>
+                <div class="plan-limit">${limits.messagesRemaining}/${limits.dailyLimit} msgs restantes hoje</div>
+                <a href="https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee" class="upgrade-btn" target="_blank">
+                    ⚡ Upgrade PRO - R$27,90/mês
+                </a>
+            `;
+        }
+
+        sidebarFooter.insertBefore(banner, sidebarFooter.firstChild);
     },
 
     setupLogout() {

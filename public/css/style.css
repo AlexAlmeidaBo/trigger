@@ -1501,6 +1501,7 @@ small {
 .btn-logout:hover {
     color: var(--danger);
 }
+
 /* AI Toggle Styles */
 .ai-toggle {
     display: flex;
@@ -1549,11 +1550,11 @@ small {
     border-radius: 50%;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
     background: var(--primary);
 }
 
-.toggle-switch input:checked + .toggle-slider::before {
+.toggle-switch input:checked+.toggle-slider::before {
     transform: translateX(24px);
 }
 
@@ -1702,7 +1703,7 @@ small {
 .loading-groups .spinner {
     width: 32px;
     height: 32px;
-    border: 3px solid rgba(255,255,255,0.1);
+    border: 3px solid rgba(255, 255, 255, 0.1);
     border-top-color: var(--primary);
     border-radius: 50%;
     animation: spin 1s linear infinite;
@@ -1710,7 +1711,9 @@ small {
 }
 
 @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .no-results {
@@ -1788,25 +1791,25 @@ small {
     .search-box-large {
         flex-direction: column;
     }
-    
+
     .group-card {
         flex-direction: column;
     }
-    
+
     .group-icon {
         width: 48px;
         height: 48px;
     }
-    
+
     .group-actions {
         flex-direction: row;
         width: 100%;
     }
-    
+
     .group-actions .btn {
         flex: 1;
     }
-    
+
     .agent-grid {
         grid-template-columns: 1fr;
     }
@@ -1891,11 +1894,11 @@ small {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .link-actions {
         width: 100%;
     }
-    
+
     .link-actions .btn {
         flex: 1;
     }
@@ -1920,4 +1923,66 @@ small {
 .batch-config span {
     color: var(--text-secondary);
     font-size: 0.9rem;
+}
+
+/* Plan Banner Styles */
+.plan-banner {
+    background: linear-gradient(135deg, rgba(255, 165, 0, 0.15) 0%, rgba(255, 100, 0, 0.1) 100%);
+    border: 1px solid rgba(255, 165, 0, 0.3);
+    border-radius: var(--radius-md);
+    padding: 12px;
+    margin-bottom: 12px;
+    text-align: center;
+}
+
+.plan-banner.premium {
+    background: linear-gradient(135deg, rgba(37, 211, 102, 0.15) 0%, rgba(18, 140, 126, 0.1) 100%);
+    border-color: rgba(37, 211, 102, 0.3);
+}
+
+.plan-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffa500;
+    margin-bottom: 6px;
+}
+
+.plan-badge svg {
+    width: 16px;
+    height: 16px;
+}
+
+.plan-badge.premium {
+    color: var(--primary);
+}
+
+.plan-limit {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.upgrade-btn {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    background: linear-gradient(135deg, #ffa500 0%, #ff6b00 100%);
+    color: #000;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-decoration: none;
+    border-radius: var(--radius-sm);
+    transition: all 0.3s ease;
+}
+
+.upgrade-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(255, 165, 0, 0.4);
+}
+
+.plan-banner.premium .upgrade-btn {
+    display: none;
 }
