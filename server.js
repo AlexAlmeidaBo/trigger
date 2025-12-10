@@ -60,6 +60,21 @@ app.get('/api/whatsapp/qr', (req, res) => {
     }
 });
 
+// Request pairing code
+app.post('/api/whatsapp/pairing-code', async (req, res) => {
+    try {
+        const { phoneNumber } = req.body;
+        if (!phoneNumber) {
+            return res.status(400).json({ success: false, error: 'Phone number is required' });
+        }
+
+        const result = await whatsapp.requestPairingCode(phoneNumber);
+        res.json(result);
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Reconnect WhatsApp
 app.post('/api/whatsapp/reconnect', async (req, res) => {
     try {

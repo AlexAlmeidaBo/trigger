@@ -11,6 +11,91 @@ const WhatsApp = {
     bindEvents() {
         document.getElementById('reconnectBtn').addEventListener('click', () => this.requestNewQR());
         document.getElementById('logoutBtn').addEventListener('click', () => this.logout());
+
+        // Pairing Code Events
+        const pairingBtn = document.getElementById('pairingCodeBtn');
+        if (pairingBtn) {
+            pairingBtn.addEventListener('click', () => this.openPairingModal());
+        }
+
+        document.getElementById('closePairingModal')?.addEventListener('click', () => this.closePairingModal());
+        document.getElementById('cancelPairing')?.addEventListener('click', () => this.closePairingModal());
+        document.getElementById('generateCodeBtn')?.addEventListener('click', () => this.requestPairingCode());
+
+        // Format phone input
+        const phoneInput = document.getElementById('pairingPhone');
+        if (phoneInput) {
+            phoneInput.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/\D/g, '');
+            });
+        }
+    },
+
+    openPairingModal() {
+        document.getElementById('pairingModal').classList.remove('hidden');
+        document.getElementById('pairingInputStep').classList.remove('hidden');
+        document.getElementById('pairingCodeStep').classList.add('hidden');
+        document.getElementById('pairingPhone').value = '';
+        document.getElementById('generateCodeBtn').style.display = 'block';
+    },
+
+    closePairingModal() {
+        document.getElementById('pairingModal').classList.add('hidden');
+    },
+
+    async requestPairingCode() {
+        const phoneInput = document.getElementById('pairingPhone');
+        const phone = phoneInput.value.trim();
+
+        if (!phone || phone.length < 10) {
+            Toast.warning('Digite um número de telefone válido com DDD');
+            return;
+        }
+
+        const generateBtn = document.getElementById('generateCodeBtn');
+        const loading = document.getElementById('pairingLoading');
+        const codeDisplay = document.getElementById('pairingCodeDisplay');
+
+        generateBtn.disabled = true;
+        generateBtn.textContent = 'Gerando...';
+
+        try {
+            const result = await API.post('/whatsapp/pairing-code', { phoneNumber: phone });
+
+            if (result.success) {
+                // Show code step
+                document.getElementById('pairingInputStep').classList.add('hidden');
+                document.getElementById('pairingCodeStep').classList.remove('hidden');
+                generateBtn.style.display = 'none';
+
+                // Display code
+                const code = result.code; // Format: XXXX-XXXX
+                const chars = code.replace('-', '').split('');
+
+                codeDisplay.innerHTML = '';
+                chars.forEach((char, index) => {
+                    if (index === 4) {
+                        const sep = document.createElement('span');
+                        sep.className = 'code-separator';
+                        sep.textContent = '-';
+                        codeDisplay.appendChild(sep);
+                    }
+                    const span = document.createElement('span');
+                    span.className = 'code-digit';
+                    span.textContent = char;
+                    codeDisplay.appendChild(span);
+                });
+
+                Toast.success('Código gerado com sucesso!');
+            } else {
+                throw new Error(result.error || 'Erro ao gerar código');
+            }
+        } catch (err) {
+            console.error(err);
+            Toast.error(err.message || 'Erro ao gerar código de pareamento');
+            generateBtn.disabled = false;
+            generateBtn.textContent = 'Gerar Código';
+        }
     },
 
     async checkStatusAndConnect() {

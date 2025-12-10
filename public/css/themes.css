@@ -930,3 +930,75 @@ button {
         font-size: 1.2rem !important;
     }
 }
+
+/* Pairing Code Styles */
+.pairing-code-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 24px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.code-digit {
+    width: 40px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.code-separator {
+    font-size: 1.5rem;
+    color: var(--text-muted);
+    margin: 0 4px;
+}
+
+.modal-message {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+.help-text {
+    display: block;
+    margin-top: 8px;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.loading-spinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid var(--bg-tertiary);
+    border-top: 3px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@media (max-width: 480px) {
+    .code-digit {
+        width: 32px;
+        height: 40px;
+        font-size: 1.2rem;
+        gap: 4px;
+    }
+    .pairing-code-display {
+        gap: 4px;
+    }
+}

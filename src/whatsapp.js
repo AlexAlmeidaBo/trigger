@@ -327,6 +327,51 @@ class WhatsAppManager {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
+    // Request pairing code for phone number authentication (alternative to QR)
+    async requestPairingCode(phoneNumber) {
+        if (this.isReady) {
+            throw new Error('Already connected');
+        }
+
+        if (!phoneNumber) {
+            throw new Error('Phone number is required');
+        }
+
+        // Format phone number - remove non-digits and ensure no country code issues
+        let formattedPhone = phoneNumber.replace(/\D/g, '');
+
+        // Remove leading zeros
+        formattedPhone = formattedPhone.replace(/^0+/, '');
+
+        console.log(`Requesting pairing code for: ${formattedPhone}`);
+
+        try {
+            // Request the pairing code - this returns an 8-character code
+            const pairingCode = await this.client.requestPairingCode(formattedPhone);
+
+            // Format code with hyphen for better readability (XXXX-XXXX)
+            const formattedCode = pairingCode.match(/.{1,4}/g).join('-');
+
+            console.log(`Pairing code generated: ${formattedCode}`);
+
+            // Broadcast to WebSocket clients
+            this.broadcast({
+                type: 'pairing_code',
+                code: formattedCode,
+                phone: formattedPhone
+            });
+
+            return {
+                success: true,
+                code: formattedCode,
+                phone: formattedPhone
+            };
+        } catch (err) {
+            console.error('Failed to generate pairing code:', err);
+            throw new Error(`Failed to generate pairing code: ${err.message}`);
+        }
+    }
+
     // Get connection info
     getInfo() {
         return {
