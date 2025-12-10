@@ -154,10 +154,6 @@
             text-decoration: none;
         }
 
-        .support-link a:hover {
-            text-decoration: underline;
-        }
-
         .logout-btn {
             margin-top: 16px;
             color: #666;
@@ -166,10 +162,6 @@
             border: none;
             cursor: pointer;
             text-decoration: underline;
-        }
-
-        .logout-btn:hover {
-            color: #888;
         }
 
         .user-email {
@@ -188,97 +180,56 @@
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
             </svg>
         </div>
-
         <h1>Assinatura Necessária</h1>
         <p class="subtitle">Para usar o WA Sender, você precisa ter uma assinatura ativa.</p>
-
         <div class="card">
             <div class="price-tag">
                 <span class="currency">R$</span>
                 <span class="price">27,90</span>
                 <span class="period">/mês</span>
             </div>
-
             <ul class="features">
-                <li>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Envio ilimitado de mensagens
-                </li>
-                <li>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    </svg>Envio ilimitado de mensagens</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Importação de contatos de grupos
-                </li>
-                <li>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    </svg>Importação de contatos de grupos</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Variação de mensagens com IA
-                </li>
-                <li>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    </svg>Variação de mensagens com IA</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Relatórios completos de campanhas
-                </li>
-                <li>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    </svg>Relatórios completos de campanhas</li>
+                <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                    Suporte prioritário
-                </li>
+                    </svg>Suporte prioritário</li>
             </ul>
-
-            <a href="#" id="subscribeBtn" class="btn-subscribe">
-                Assinar Agora
-            </a>
+            <a href="https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee" class="btn-subscribe">Assinar
+                Agora</a>
         </div>
-
-        <p class="support-link">
-            Já é assinante? <a href="mailto:suporte@wasender.fun">Entre em contato</a>
-        </p>
-
+        <p class="support-link">Já é assinante? <a href="mailto:suporte@wasender.fun">Entre em contato</a></p>
         <p class="user-email" id="userEmail"></p>
         <button class="logout-btn" id="logoutBtn">Sair da conta</button>
     </div>
-
-    <script type="module">
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getAuth, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyBxOPLpgXuQa-MiVVLOEaFkLhZxUL7zhM8",
-            authDomain: "wasenderpro.firebaseapp.com",
-            projectId: "wasenderpro",
-            storageBucket: "wasenderpro.firebasestorage.app",
-            messagingSenderId: "439039268585",
-            appId: "1:439039268585:web:53a19a5ea37b0eb00f3cb1"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-
-        // Show user email
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                document.getElementById('userEmail').textContent = `Logado como: ${user.email}`;
-            } else {
-                window.location.href = '/login.html';
+    <script>
+        // Show user email from localStorage (no Firebase needed here)
+        const userData = localStorage.getItem('userData');
+        if (userData) {
+            try {
+                const user = JSON.parse(userData);
+                document.getElementById('userEmail').textContent = 'Logado como: ' + (user.email || user.displayName || 'Usuário');
+            } catch (e) {
+                console.error('Error parsing user data');
             }
-        });
+        }
 
         // Logout button
-        document.getElementById('logoutBtn').addEventListener('click', async () => {
-            await signOut(auth);
+        document.getElementById('logoutBtn').addEventListener('click', function () {
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('userData');
             window.location.href = '/login.html';
         });
-
-        // Subscribe button - set your Kirvano checkout URL here
-        const KIRVANO_CHECKOUT_URL = 'https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee';
-        document.getElementById('subscribeBtn').href = KIRVANO_CHECKOUT_URL;
     </script>
 </body>
 
