@@ -318,13 +318,33 @@
         }
     </style>
 
+    
     <script>
         // Check if user is already logged in
         (function() {
-            const token = localStorage.getItem('authToken');
-            const userData = localStorage.getItem('userData');
-            if (token && userData) {
-                window.location.replace('/index.html');
+            try {
+                const token = localStorage.getItem('authToken');
+                const userData = localStorage.getItem('userData');
+                
+                // Check for redirect loop protection
+                const lastRedirect = sessionStorage.getItem('auth_redirect_ts');
+                const now = Date.now();
+                
+                // Se foi redirecionado há menos de 3 segundos, não redireciona de novo (evita loop)
+                if (lastRedirect && (now - parseInt(lastRedirect)) < 3000) {
+                    console.warn('Redirect loop detected, staying on page');
+                    sessionStorage.removeItem('auth_redirect_ts');
+                    // Opcional: limpar token se suspeitar de loop inválido
+                    // localStorage.removeItem('authToken'); 
+                    return;
+                }
+
+                if (token && userData) {
+                    sessionStorage.setItem('auth_redirect_ts', now.toString());
+                    window.location.replace('/index.html');
+                }
+            } catch (e) {
+                console.error('Auth check error:', e);
             }
         })();
     </script>

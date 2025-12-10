@@ -64,7 +64,7 @@
                     </svg>
                     <span>Relatórios</span>
                 </a>
-                <a href="#" class="nav-item" data-section="agent">
+                            <a href="#" class="nav-item" data-section="agent">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M8 14s1.5 2 4 2 4-2 4-2" />
@@ -119,121 +119,179 @@
 
                         <div class="connection-actions">
                             <button class="btn btn-primary" id="reconnectBtn">
-                                <div class="section-header">
-                                    <h1>Gerenciar Contatos</h1>
-                                    <p>Importe e gerencie seus contatos para campanhas</p>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="23 4 23 10 17 10" />
+                                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                                </svg>
+                                Reconectar
+                            </button>
+                            <button class="btn btn-secondary" id="logoutBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                                    <polyline points="16 17 21 12 16 7" />
+                                    <line x1="21" y1="12" x2="9" y2="12" />
+                                </svg>
+                                Desconectar
+                            </button>
+                            <button class="btn btn-secondary" id="pairingCodeBtn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="4" y="2" width="16" height="20" rx="2" />
+                                    <line x1="8" y1="6" x2="16" y2="6" />
+                                    <line x1="8" y1="10" x2="16" y2="10" />
+                                    <line x1="8" y1="14" x2="12" y2="14" />
+                                </svg>
+                                Conectar com Código
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pairing Code Modal -->
+                <div class="modal hidden" id="pairingModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Conectar com Número</h3>
+                            <button class="modal-close" id="closePairingModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div id="pairingInputStep">
+                                <p class="modal-message">Digite seu número de telefone com código do país e DDD para gerar um código de pareamento.</p>
+                                <div class="form-group">
+                                    <label>Número de Telefone</label>
+                                    <input type="tel" id="pairingPhone" placeholder="5511999999999" class="form-input">
+                                    <small class="help-text">Ex: 55 (Brasil) + 11 (DDD) + 999999999</small>
                                 </div>
-
-                                <div class="contacts-grid">
-                                    <!-- Import Card -->
-                                    <div class="card import-card">
-                                        <h3>Importar Contatos</h3>
-
-                                        <div class="import-options">
-                                            <div class="import-option">
-                                                <label class="file-upload">
-                                                    <input type="file" id="fileImport" accept=".csv,.txt">
-                                                    <div class="upload-area">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                            stroke-width="2">
-                                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                                            <polyline points="17 8 12 3 7 8" />
-                                                            <line x1="12" y1="3" x2="12" y2="15" />
-                                                        </svg>
-                                                        <span>Arraste um arquivo CSV ou TXT</span>
-                                                        <small>ou clique para selecionar</small>
-                                                    </div>
-                                                </label>
-                                            </div>
-
-                                            <div class="divider">ou</div>
-
-                                            <div class="import-option">
-                                                <button class="btn btn-secondary btn-block" id="importGroupBtn">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2">
-                                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                                        <circle cx="9" cy="7" r="4" />
-                                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-                                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                                                    </svg>
-                                                    Importar de Grupo WhatsApp
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div class="import-status hidden" id="importStatus">
-                                            <div class="status-icon success">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2">
-                                                    <polyline points="20 6 9 17 4 12" />
-                                                </svg>
-                                            </div>
-                                            <span id="importMessage">Contatos importados com sucesso!</span>
-                                        </div>
-                                    </div>
-
-                                    <!-- Contacts List Card -->
-                                    <div class="card contacts-list-card">
-                                        <div class="card-header">
-                                            <h3>Lista de Contatos</h3>
-                                            <div class="header-actions">
-                                                <span class="contact-count" id="contactCount">0 contatos</span>
-                                                <button class="btn btn-danger btn-sm" id="clearContactsBtn">
-                                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                        stroke-width="2">
-                                                        <polyline points="3 6 5 6 21 6" />
-                                                        <path
-                                                            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                                    </svg>
-                                                    Limpar
-                                                </button>
-                                            </div>
-                                        </div>
-
-                                        <div class="contacts-table-wrapper">
-                                            <table class="contacts-table" id="contactsTable">
-                                                <thead>
-                                                    <tr>
-                                                        <th><input type="checkbox" id="selectAllContacts"></th>
-                                                        <th>Nome</th>
-                                                        <th>Telefone</th>
-                                                        <th>Grupo</th>
-                                                        <th>Ações</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody id="contactsTableBody">
-                                                    <!-- Contacts will be loaded here -->
-                                                </tbody>
-                                            </table>
-
-                                            <div class="empty-state" id="emptyContacts">
-                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                                    stroke-width="2">
-                                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                                    <circle cx="9" cy="7" r="4" />
-                                                </svg>
-                                                <p>Nenhum contato importado</p>
-                                                <small>Importe contatos de um arquivo ou grupo WhatsApp</small>
-                                            </div>
-                                        </div>
-                                    </div>
+                            </div>
+                            
+                            <div id="pairingCodeStep" class="hidden">
+                                <p class="modal-message">No seu WhatsApp, vá em <strong>Dispositivos Conectados</strong> → <strong>Conectar dispositivo</strong> → <strong>Conectar com número</strong> e digite:</p>
+                                <div class="pairing-code-display" id="pairingCodeDisplay">
+                                    <span class="code-digit">-</span><span class="code-digit">-</span><span class="code-digit">-</span><span class="code-digit">-</span>
+                                    <span class="code-separator">-</span>
+                                    <span class="code-digit">-</span><span class="code-digit">-</span><span class="code-digit">-</span><span class="code-digit">-</span>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" id="cancelPairing">Cancelar</button>
+                            <button class="btn btn-primary" id="generateCodeBtn">Gerar Código</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
-                                <!-- Group Selection Modal -->
-                                <div class="modal hidden" id="groupModal">
-                                    <div class="modal-content">
-                                        <div class="modal-header">
-                                            <h3>Selecionar Grupo</h3>
-                                            <button class="modal-close" id="closeGroupModal">&times;</button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="groups-list" id="groupsList">
-                                                <!-- Groups will be loaded here -->
-                                            </div>
-                                        </div>
+            <!-- Contacts Section -->
+            <section id="contacts" class="section">
+                <div class="section-header">
+                    <h1>Gerenciar Contatos</h1>
+                    <p>Importe e gerencie seus contatos para campanhas</p>
+                </div>
+
+                <div class="contacts-grid">
+                    <!-- Import Card -->
+                    <div class="card import-card">
+                        <h3>Importar Contatos</h3>
+
+                        <div class="import-options">
+                            <div class="import-option">
+                                <label class="file-upload">
+                                    <input type="file" id="fileImport" accept=".csv,.txt">
+                                    <div class="upload-area">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                            <polyline points="17 8 12 3 7 8" />
+                                            <line x1="12" y1="3" x2="12" y2="15" />
+                                        </svg>
+                                        <span>Arraste um arquivo CSV ou TXT</span>
+                                        <small>ou clique para selecionar</small>
                                     </div>
-                                </div>
+                                </label>
+                            </div>
+
+                            <div class="divider">ou</div>
+
+                            <div class="import-option">
+                                <button class="btn btn-secondary btn-block" id="importGroupBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                        <circle cx="9" cy="7" r="4" />
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                    </svg>
+                                    Importar de Grupo WhatsApp
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="import-status hidden" id="importStatus">
+                            <div class="status-icon success">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                            </div>
+                            <span id="importMessage">Contatos importados com sucesso!</span>
+                        </div>
+                    </div>
+
+                    <!-- Contacts List Card -->
+                    <div class="card contacts-list-card">
+                        <div class="card-header">
+                            <h3>Lista de Contatos</h3>
+                            <div class="header-actions">
+                                <span class="contact-count" id="contactCount">0 contatos</span>
+                                <button class="btn btn-danger btn-sm" id="clearContactsBtn">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path
+                                            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    </svg>
+                                    Limpar
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="contacts-table-wrapper">
+                            <table class="contacts-table" id="contactsTable">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="selectAllContacts"></th>
+                                        <th>Nome</th>
+                                        <th>Telefone</th>
+                                        <th>Grupo</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="contactsTableBody">
+                                    <!-- Contacts will be loaded here -->
+                                </tbody>
+                            </table>
+
+                            <div class="empty-state" id="emptyContacts">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                    <circle cx="9" cy="7" r="4" />
+                                </svg>
+                                <p>Nenhum contato importado</p>
+                                <small>Importe contatos de um arquivo ou grupo WhatsApp</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Selection Modal -->
+                <div class="modal hidden" id="groupModal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3>Selecionar Grupo</h3>
+                            <button class="modal-close" id="closeGroupModal">&times;</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="groups-list" id="groupsList">
+                                <!-- Groups will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
 
             <!-- Messages Section -->
@@ -536,7 +594,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                     </div>
                 </div>
             </section>
-
+        
             <!-- Agent IA Section -->
             <section id="agent" class="section">
                 <div class="section-header">
