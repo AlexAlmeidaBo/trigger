@@ -127,7 +127,7 @@ router.post('/campaigns', async (req, res) => {
             batchDelayMax: 60
         };
 
-        console.log('Creating campaign:', { name, contacts: contactIds?.length, delayConfig: config });
+        console.log('Creating campaign:', { name, contacts: contactIds?.length, delayConfig: config, variationLevel });
 
         if (!message || !contactIds || contactIds.length === 0) {
             return res.status(400).json({
@@ -222,6 +222,7 @@ router.post('/campaigns/:id/stop', (req, res) => {
 async function runCampaign(campaignId, contacts, message, delayConfig, variationLevel) {
     console.log(`Starting campaign ${campaignId} with ${contacts.length} contacts`);
     console.log('Delay config:', delayConfig);
+    console.log('Variation level received:', variationLevel);
 
     let sentCount = 0;
     let failedCount = 0;
@@ -241,7 +242,9 @@ async function runCampaign(campaignId, contacts, message, delayConfig, variation
 
         try {
             // Get message variation
+            console.log(`Getting variation for contact ${contact.name}, level: ${variationLevel}`);
             const finalMessage = await ai.getRandomVariation(message, variationLevel, contact);
+            console.log(`Original: "${message.substring(0, 50)}..." | Final: "${finalMessage.substring(0, 50)}..."`);
 
             // Send message
             await whatsapp.sendMessage(contact.phone, finalMessage);

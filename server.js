@@ -4,6 +4,8 @@ const path = require('path');
 const http = require('http');
 const WebSocket = require('ws');
 
+// OpenAI API key should be set via environment variable OPENAI_API_KEY
+
 // Import modules
 const db = require('./src/database');
 const whatsapp = require('./src/whatsapp');

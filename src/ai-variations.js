@@ -256,13 +256,20 @@ Responda APENAS com as variações, uma por linha, sem numeração, sem aspas, s
 
     // Get random variation
     async getRandomVariation(message, level = 'medium', contact = null) {
+        console.log(`[AI] getRandomVariation called with level: "${level}"`);
+
         if (level === 'none') {
+            console.log('[AI] Level is none, returning original message');
             return contact ? this.applyVariables(message, contact) : message;
         }
 
+        console.log('[AI] Generating variations...');
         const variations = await this.generateVariations(message, level);
+        console.log(`[AI] Got ${variations.length} variations`);
+
         const randomIndex = Math.floor(Math.random() * variations.length);
         const variation = variations[randomIndex] || message;
+        console.log(`[AI] Selected variation ${randomIndex}: "${variation.substring(0, 50)}..."`);
 
         return contact ? this.applyVariables(variation, contact) : variation;
     }

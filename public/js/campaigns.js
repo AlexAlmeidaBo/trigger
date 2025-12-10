@@ -138,6 +138,7 @@ const Campaigns = {
         const batchDelayMin = parseInt(document.getElementById('batchDelayMin')?.value) || 30;
         const batchDelayMax = parseInt(document.getElementById('batchDelayMax')?.value) || 60;
         const variationLevel = Messages.getVariationLevel();
+        console.log('[DEBUG] Texto Mágico enabled:', Messages.useAiVariation, 'variationLevel:', variationLevel);
 
         // Confirm
         const confirmMsg = `Enviar mensagem para ${this.selectedContacts.length} contatos?\n\n` +
