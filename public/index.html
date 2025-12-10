@@ -293,73 +293,31 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                         </div>
                     </div>
 
-                    <!-- AI Variations -->
+                                        <!-- Texto Mágico -->
                     <div class="card ai-card">
-                        <h3>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <div class="ai-toggle">
+                            <label class="toggle-switch">
+                                <input type="checkbox" id="enableAiVariation">
+                                <span class="toggle-slider"></span>
+                            </label>
+                            <div class="toggle-label">
+                                <div class="toggle-title">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
+                                        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                                    </svg>
+                                    Texto Mágico
+                                </div>
+                                <small>Gera variações automáticas da mensagem para evitar bloqueios do WhatsApp</small>
+                            </div>
+                        </div>
+
+                        <div class="ai-info-box" id="aiInfoBox">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18">
                                 <circle cx="12" cy="12" r="10" />
-                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-                                <line x1="12" y1="17" x2="12.01" y2="17" />
+                                <line x1="12" y1="16" x2="12" y2="12" />
+                                <line x1="12" y1="8" x2="12.01" y2="8" />
                             </svg>
-                            Variação por IA
-                        </h3>
-
-                        <div class="form-group">
-                            <label>Nível de Variação</label>
-                            <div class="variation-levels">
-                                <label class="variation-option">
-                                    <input type="radio" name="variationLevel" value="none" checked>
-                                    <span class="option-card">
-                                        <strong>Nenhuma</strong>
-                                        <small>Envia a mensagem original</small>
-                                    </span>
-                                </label>
-                                <label class="variation-option">
-                                    <input type="radio" name="variationLevel" value="low">
-                                    <span class="option-card">
-                                        <strong>Baixa</strong>
-                                        <small>Pequenas alterações</small>
-                                    </span>
-                                </label>
-                                <label class="variation-option">
-                                    <input type="radio" name="variationLevel" value="medium">
-                                    <span class="option-card">
-                                        <strong>Média</strong>
-                                        <small>Variações equilibradas</small>
-                                    </span>
-                                </label>
-                                <label class="variation-option">
-                                    <input type="radio" name="variationLevel" value="high">
-                                    <span class="option-card">
-                                        <strong>Alta</strong>
-                                        <small>Maior criatividade</small>
-                                    </span>
-                                </label>
-                            </div>
-                        </div>
-
-                        <button class="btn btn-secondary btn-block" id="generateVariationsBtn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                            </svg>
-                            Gerar Variações
-                        </button>
-
-                        <div class="variations-list hidden" id="variationsList">
-                            <h4>Variações Geradas</h4>
-                            <div class="variations-container" id="variationsContainer">
-                                <!-- Variations will be loaded here -->
-                            </div>
-                        </div>
-
-                        <div class="ai-info">
-                            <div class="ai-status">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16"
-                                    height="16">
-                                    <polyline points="20 6 9 17 4 12" />
-                                </svg>
-                                <span>IA Configurada (Google Gemini)</span>
-                            </div>
+                            <span>Cada mensagem será ligeiramente diferente para parecer mais natural</span>
                         </div>
                     </div>
                 </div>
