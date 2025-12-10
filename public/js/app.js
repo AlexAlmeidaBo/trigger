@@ -38,9 +38,6 @@ const App = {
             this.user = Auth.getUser();
         }
 
-        // TODO: Subscription check temporarily disabled to fix redirect loop
-        // Enable this after configuring Kirvano webhook
-        /*
         // Check subscription status (only if not already checking)
         if (typeof Auth !== 'undefined' && Auth.checkSubscription && !window._checkingSubscription) {
             window._checkingSubscription = true;
@@ -55,7 +52,6 @@ const App = {
                 window._checkingSubscription = false;
             }
         }
-        */
 
         return true;
     },
