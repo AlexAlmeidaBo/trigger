@@ -18,6 +18,9 @@ const App = {
         this.initModules();
         this.setupLogout();
         this.setupMobileMenu();
+
+        // Block premium features for free users
+        setTimeout(() => this.blockPremiumFeatures(), 100);
     },
 
     async checkAuth() {
@@ -133,6 +136,51 @@ const App = {
         }
 
         sidebarFooter.insertBefore(banner, sidebarFooter.firstChild);
+    },
+
+    blockPremiumFeatures() {
+        // Block AI Variation (Texto Mágico) for free users
+        const aiToggle = document.getElementById('enableAiVariation');
+        if (aiToggle && !this.isPremium) {
+            // Disable the checkbox
+            aiToggle.disabled = true;
+            aiToggle.checked = false;
+
+            // Add visual blocker
+            const aiCard = aiToggle.closest('.ai-card');
+            if (aiCard && !aiCard.querySelector('.premium-lock')) {
+                aiCard.style.position = 'relative';
+                aiCard.style.opacity = '0.7';
+
+                const lock = document.createElement('div');
+                lock.className = 'premium-lock';
+                lock.innerHTML = `
+                    <div style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        right: 0;
+                        bottom: 0;
+                        background: rgba(0,0,0,0.5);
+                        border-radius: 12px;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        z-index: 10;
+                        cursor: pointer;
+                    " onclick="window.open('https://pay.kirvano.com/245a1b99-0627-4f2b-93fa-adf5dc52ffee', '_blank')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="#ffa500" stroke-width="2" width="32" height="32">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                        <span style="color: #ffa500; font-weight: 600; margin-top: 8px;">Recurso PRO</span>
+                        <span style="color: #888; font-size: 0.8rem;">Clique para fazer upgrade</span>
+                    </div>
+                `;
+                aiCard.appendChild(lock);
+            }
+        }
     },
 
     setupLogout() {
