@@ -623,8 +623,29 @@ class Database {
     }
 
     canSendMessages(userId, count = 1, dailyLimit = 15) {
-        // Check if user has active subscription (unlimited)
+        // Admin emails that always have unlimited access
+        const ADMIN_EMAILS = ['alexalmeidabo@gmail.com'];
+
+        // Get user to check email
+        const user = this.getUserById(userId);
+
+        // Check if user is an admin (unlimited access)
+        if (user && ADMIN_EMAILS.includes(user.email)) {
+            console.log(`Admin user detected: ${user.email} - unlimited access`);
+            return { allowed: true, remaining: Infinity, isPremium: true, isAdmin: true };
+        }
+
+        // Check if user has active subscription by user_id
         if (this.isSubscriptionActive(userId)) {
+            console.log(`Premium user by ID: ${userId}`);
+            return { allowed: true, remaining: Infinity, isPremium: true };
+        }
+
+        // Also check subscription by email (in case subscription was created before login)
+        if (user && this.isSubscriptionActiveByEmail(user.email)) {
+            console.log(`Premium user by email: ${user.email}`);
+            // Link the subscription to the user ID for future checks
+            this.linkSubscriptionToUser(userId, user.email);
             return { allowed: true, remaining: Infinity, isPremium: true };
         }
 
@@ -639,7 +660,23 @@ class Database {
 
     // Check if user has premium features (subscription active)
     isPremiumUser(userId) {
-        return this.isSubscriptionActive(userId);
+        // Also check admin status
+        const ADMIN_EMAILS = ['alexalmeidabo@gmail.com'];
+        const user = this.getUserById(userId);
+        if (user && ADMIN_EMAILS.includes(user.email)) {
+            return true;
+        }
+
+        if (this.isSubscriptionActive(userId)) {
+            return true;
+        }
+
+        // Also check by email
+        if (user && this.isSubscriptionActiveByEmail(user.email)) {
+            return true;
+        }
+
+        return false;
     }
 }
 
