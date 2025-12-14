@@ -1,12 +1,14 @@
-// Agent Module
+// Agent Module with Archetypes
 const Agent = {
     config: {
         enabled: false,
-        prompt: ''
+        selectedArchetypeId: null
     },
+    archetypes: [],
     logs: [],
 
     init() {
+        this.loadArchetypes();
         this.loadConfig();
         this.bindEvents();
     },
@@ -14,6 +16,7 @@ const Agent = {
     bindEvents() {
         const toggle = document.getElementById('enableAgent');
         const saveBtn = document.getElementById('saveAgentConfig');
+        const archetypeSelect = document.getElementById('archetypeSelect');
 
         if (toggle) {
             toggle.addEventListener('change', (e) => this.toggleAgent(e.target.checked));
@@ -22,26 +25,115 @@ const Agent = {
         if (saveBtn) {
             saveBtn.addEventListener('click', () => this.saveConfig());
         }
+
+        if (archetypeSelect) {
+            archetypeSelect.addEventListener('change', (e) => this.showArchetypePreview(e.target.value));
+        }
+    },
+
+    async loadArchetypes() {
+        try {
+            const result = await API.get('/archetypes');
+            if (result.success) {
+                this.archetypes = result.archetypes;
+                this.renderArchetypeSelect();
+            }
+        } catch (err) {
+            console.error('Error loading archetypes:', err);
+            Toast.error('Erro ao carregar cerebros');
+        }
+    },
+
+    renderArchetypeSelect() {
+        const select = document.getElementById('archetypeSelect');
+        if (!select) return;
+
+        if (this.archetypes.length === 0) {
+            select.innerHTML = '<option value="">Nenhum cerebro disponivel</option>';
+            return;
+        }
+
+        select.innerHTML = `
+            <option value="">Selecione um cerebro...</option>
+            ${this.archetypes.map(a => `
+                <option value="${a.id}" ${a.id === this.config.selectedArchetypeId ? 'selected' : ''}>
+                    ${this.formatArchetypeName(a)}
+                </option>
+            `).join('')}
+        `;
+
+        // Show preview if one is selected
+        if (this.config.selectedArchetypeId) {
+            this.showArchetypePreview(this.config.selectedArchetypeId);
+        }
+    },
+
+    formatArchetypeName(archetype) {
+        const nicheEmoji = {
+            'RELIGIOSO': '🙏',
+            'POLITICA': '🏛️',
+            'EMAGRECIMENTO': '💪'
+        };
+        return `${nicheEmoji[archetype.niche] || '🤖'} ${archetype.niche} - ${archetype.tone}`;
+    },
+
+    showArchetypePreview(archetypeId) {
+        const preview = document.getElementById('archetypePreview');
+        if (!preview) return;
+
+        if (!archetypeId) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        const archetype = this.archetypes.find(a => a.id == archetypeId);
+        if (!archetype) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        preview.style.display = 'block';
+
+        // Update preview elements
+        document.getElementById('archetypeNiche').textContent = archetype.niche;
+        document.getElementById('archetypeTone').textContent = archetype.tone;
+        document.getElementById('archetypeObjective').textContent = archetype.objective || 'Nao definido';
+
+        const delays = archetype.policy?.delays || { min: 10, max: 30 };
+        document.getElementById('archetypeDelay').textContent = `${delays.min}s - ${delays.max}s`;
+
+        document.getElementById('archetypePrompt').textContent = archetype.system_prompt;
+
+        this.config.selectedArchetypeId = parseInt(archetypeId);
     },
 
     async loadConfig() {
         try {
             const result = await API.get('/agent/config');
             if (result.success) {
-                this.config = result.config;
-                this.updateUI();
+                this.config.enabled = result.config.enabled;
+                this.updateStatusUI();
             }
         } catch (err) {
             console.error('Error loading agent config:', err);
         }
     },
 
-    updateUI() {
+    updateStatusUI() {
         const toggle = document.getElementById('enableAgent');
-        const promptInput = document.getElementById('agentPrompt');
+        const statusDot = document.getElementById('agentStatusDot');
+        const statusText = document.getElementById('agentStatus');
 
         if (toggle) toggle.checked = this.config.enabled;
-        if (promptInput) promptInput.value = this.config.prompt || '';
+
+        if (statusDot) {
+            statusDot.classList.toggle('active', this.config.enabled);
+            statusDot.classList.toggle('inactive', !this.config.enabled);
+        }
+
+        if (statusText) {
+            statusText.textContent = this.config.enabled ? 'Ativo' : 'Desativado';
+        }
     },
 
     async toggleAgent(enabled) {
@@ -49,6 +141,7 @@ const Agent = {
             const result = await API.post('/agent/toggle', { enabled });
             if (result.success) {
                 this.config.enabled = result.enabled;
+                this.updateStatusUI();
                 Toast.success(result.message);
             }
         } catch (err) {
@@ -57,25 +150,24 @@ const Agent = {
     },
 
     async saveConfig() {
-        const prompt = document.getElementById('agentPrompt')?.value?.trim();
+        const archetypeId = document.getElementById('archetypeSelect')?.value;
 
-        if (!prompt) {
-            Toast.warning('Digite as instruções do agente');
+        if (!archetypeId) {
+            Toast.warning('Selecione um cerebro primeiro');
             return;
         }
 
         try {
-            const result = await API.post('/agent/config', {
-                enabled: this.config.enabled,
-                prompt
-            });
+            // Save the archetype selection (for now just toggle on)
+            const result = await API.post('/agent/toggle', { enabled: true });
 
             if (result.success) {
-                this.config = result.config;
-                Toast.success('Configuração salva!');
+                this.config.enabled = true;
+                this.updateStatusUI();
+                Toast.success('Cerebro ativado com sucesso!');
             }
         } catch (err) {
-            Toast.error('Erro ao salvar configuração');
+            Toast.error('Erro ao ativar cerebro');
         }
     },
 
@@ -97,12 +189,9 @@ const Agent = {
 
         if (this.logs.length === 0) {
             container.innerHTML = `
-                <div class="empty-state">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                    </svg>
-                    <h3>Nenhuma conversa ainda</h3>
-                    <p>Quando o agente responder mensagens, elas aparecerão aqui</p>
+                <div class="empty-logs">
+                    <p>Nenhuma conversa ainda</p>
+                    <small>As conversas do bot aparecerao aqui em tempo real</small>
                 </div>
             `;
             return;
@@ -121,25 +210,21 @@ const Agent = {
         `).join('');
     },
 
-    // Called when agent reply comes through WebSocket
     handleAgentReply(data) {
         console.log('Agent replied:', data);
 
-        // Add to logs
         this.logs.unshift({
             contactId: data.contact,
             messages: [
                 { role: 'user', content: data.message },
                 { role: 'assistant', content: data.response }
             ],
-            lastUpdate: data.timestamp
+            lastUpdate: data.timestamp,
+            archetypeKey: data.archetypeKey
         });
 
-        // Keep only 20 logs
         this.logs = this.logs.slice(0, 20);
         this.renderLogs();
-
-        // Show toast
         Toast.success(`Agente respondeu para ${data.contact}`);
     },
 

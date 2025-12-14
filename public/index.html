@@ -574,10 +574,10 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                 </div>
 
                 <div class="agent-grid">
-                    <!-- Agent Config Card -->
+                    <!-- Archetype Selector Card -->
                     <div class="card agent-config-card">
                         <div class="card-header-with-toggle">
-                            <h3>Configuracao do Agente</h3>
+                            <h3>Cerebro do Agente</h3>
                             <div class="agent-toggle-wrapper">
                                 <span class="status-indicator">
                                     <span class="status-dot inactive" id="agentStatusDot"></span>
@@ -591,17 +591,33 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                         </div>
 
                         <div class="form-group">
-                            <label for="agentPrompt">Personalidade / Instrucoes</label>
-                            <textarea id="agentPrompt" rows="6" placeholder="Descreva como o agente deve se comportar...
+                            <label for="archetypeSelect">Selecione o Cerebro</label>
+                            <select id="archetypeSelect" class="form-select">
+                                <option value="">Carregando cerebros...</option>
+                            </select>
+                            <small>Escolha a personalidade que o agente usara para responder</small>
+                        </div>
 
-Exemplo:
-Voce e um assistente de vendas amigavel. Responda duvidas sobre produtos, precos e prazos de entrega."></textarea>
-                            <small>Diga ao agente como ele deve responder. Seja especifico sobre tom, informacoes e
-                                limites.</small>
+                        <!-- Archetype Preview -->
+                        <div class="archetype-preview" id="archetypePreview" style="display: none;">
+                            <div class="archetype-info">
+                                <div class="archetype-badge">
+                                    <span class="niche-badge" id="archetypeNiche">-</span>
+                                    <span class="tone-badge" id="archetypeTone">-</span>
+                                </div>
+                                <div class="archetype-details">
+                                    <p><strong>Objetivo:</strong> <span id="archetypeObjective">-</span></p>
+                                    <p><strong>Delay:</strong> <span id="archetypeDelay">-</span></p>
+                                </div>
+                            </div>
+                            <details class="prompt-preview">
+                                <summary>Ver prompt do cerebro</summary>
+                                <pre id="archetypePrompt"></pre>
+                            </details>
                         </div>
 
                         <div class="form-actions">
-                            <button class="btn btn-primary" id="saveAgentConfig">Salvar Configuracao</button>
+                            <button class="btn btn-primary" id="saveAgentConfig">Ativar Cerebro</button>
                         </div>
                     </div>
 
@@ -643,7 +659,8 @@ Voce e um assistente de vendas amigavel. Responda duvidas sobre produtos, precos
     <script src="js/messages.js"></script>
     <script src="js/campaigns.js"></script>
     <script src="js/reports.js"></script>
-    <script src="js/delay-config.js"></script>`n    <script src="js/agent.js"></script>
+    <script src="js/delay-config.js"></script>`n
+    <script src="js/agent.js"></script>
 </body>
 
 </html>

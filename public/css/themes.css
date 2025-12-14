@@ -1082,6 +1082,110 @@ button {
     margin-top: 8px;
 }
 
+/* Archetype Preview Styles */
+.archetype-preview {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+}
+
+.archetype-info {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.archetype-badge {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.niche-badge,
+.tone-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.niche-badge {
+    background: linear-gradient(135deg, var(--accent), #00a86b);
+    color: white;
+}
+
+.tone-badge {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.archetype-details {
+    font-size: 0.9rem;
+}
+
+.archetype-details p {
+    margin: 4px 0;
+    color: var(--text-secondary);
+}
+
+.archetype-details strong {
+    color: var(--text-primary);
+}
+
+.prompt-preview {
+    margin-top: 12px;
+}
+
+.prompt-preview summary {
+    cursor: pointer;
+    font-size: 0.85rem;
+    color: var(--accent);
+    padding: 8px 0;
+}
+
+.prompt-preview summary:hover {
+    text-decoration: underline;
+}
+
+.prompt-preview pre {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    margin-top: 8px;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 300px;
+    overflow-y: auto;
+    color: var(--text-secondary);
+}
+
+.form-select {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238899a6' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 16px center;
+}
+
+.form-select:focus {
+    outline: none;
+    border-color: var(--accent);
+}
+
 /* ============================
    Mobile Experience Improvements
    ============================ */
