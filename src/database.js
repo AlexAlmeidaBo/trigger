@@ -624,7 +624,7 @@ class Database {
 
     canSendMessages(userId, count = 1, dailyLimit = 15) {
         // Admin emails that always have unlimited access
-        const ADMIN_EMAILS = ['alexalmeidabo@gmail.com'];
+        const ADMIN_EMAILS = ['alexalmeidabo@gmail.com', 'alec.almeida201@gmail.com'];
 
         // Get user to check email
         const user = this.getUserById(userId);
@@ -661,7 +661,7 @@ class Database {
     // Check if user has premium features (subscription active)
     isPremiumUser(userId) {
         // Also check admin status
-        const ADMIN_EMAILS = ['alexalmeidabo@gmail.com'];
+        const ADMIN_EMAILS = ['alexalmeidabo@gmail.com', 'alec.almeida201@gmail.com'];
         const user = this.getUserById(userId);
         if (user && ADMIN_EMAILS.includes(user.email)) {
             return true;
