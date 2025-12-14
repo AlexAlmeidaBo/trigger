@@ -17,6 +17,8 @@ const reportsRouter = require('./src/routes/reports');
 const groupSearchRouter = require('./src/routes/group-search');
 const agentRouter = require('./src/routes/agent');
 const subscriptionsRouter = require('./src/routes/subscriptions');
+const archetypesRouter = require('./src/routes/archetypes');
+const { seedArchetypes } = require('./src/seed-archetypes');
 
 const app = express();
 const server = http.createServer(app);
@@ -49,6 +51,7 @@ app.use('/api/reports', reportsRouter);
 app.use('/api/groups', groupSearchRouter);
 app.use('/api/agent', agentRouter);
 app.use('/api/subscription', subscriptionsRouter);
+app.use('/api/archetypes', archetypesRouter);
 
 // WhatsApp status endpoint
 app.get('/api/whatsapp/status', (req, res) => {
@@ -128,6 +131,10 @@ async function start() {
         // Initialize database
         console.log('Initializing database...');
         await db.init();
+
+        // Seed default archetypes if needed
+        console.log('Seeding archetypes...');
+        seedArchetypes();
 
         // Start server
         server.listen(PORT, () => {

@@ -2,6 +2,7 @@ const { Client, LocalAuth } = require('whatsapp-web.js');
 const qrcode = require('qrcode');
 const path = require('path');
 const agent = require('./agent');
+const brainResolver = require('./brain-resolver');
 
 class WhatsAppManager {
     constructor() {
@@ -147,7 +148,7 @@ class WhatsAppManager {
         });
     }
 
-    // Handle private messages with agent
+    // Handle private messages with agent (using Brain Resolver)
     async handlePrivateMessage(msg) {
         // Skip if client is not ready
         if (!this.isReady) {
@@ -162,29 +163,18 @@ class WhatsAppManager {
                 new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 5000))
             ]);
 
-            const contactId = contact.id?.user || 'unknown';
-            const contactName = contact.pushname || contact.name || contactId;
+            const contactPhone = contact.id?.user || 'unknown';
+            const contactName = contact.pushname || contact.name || contactPhone;
 
             // For now, use a default user ID (in production this would be tied to account)
             const userId = 'default';
 
-            // Check if agent is enabled
-            if (!agent.isEnabled(userId)) {
-                return; // Silently skip if agent disabled
-            }
-
-            console.log(`Agent responding to ${contactName}: ${msg.body?.substring(0, 50) || ''}`);
-
-            // Generate response using AI
-            const response = await agent.generateResponse(userId, contactId, msg.body, contactName);
-
-            if (response && this.isReady) {
-                // Send reply with error handling
-                try {
+            // First check old agent system for backward compatibility
+            if (agent.isEnabled(userId)) {
+                console.log(`[Old Agent] Responding to ${contactName}`);
+                const response = await agent.generateResponse(userId, contactPhone, msg.body, contactName);
+                if (response && this.isReady) {
                     await msg.reply(response);
-                    console.log(`Agent replied to ${contactName}: ${response.substring(0, 50)}`);
-
-                    // Broadcast to UI
                     this.broadcast({
                         type: 'agent_reply',
                         contact: contactName,
@@ -192,14 +182,55 @@ class WhatsAppManager {
                         response: response,
                         timestamp: new Date()
                     });
-                } catch (replyErr) {
-                    console.error('Failed to send reply:', replyErr.message);
                 }
+                return;
+            }
+
+            // Use Brain Resolver for archetype-based responses
+            console.log(`[BrainResolver] Processing message from ${contactName}: ${msg.body?.substring(0, 50) || ''}`);
+
+            const result = await brainResolver.generateResponse(userId, contactPhone, msg.body, contactName);
+
+            if (!result) {
+                console.log('[BrainResolver] No response generated (policy/handoff/rules)');
+                return;
+            }
+
+            const { message, delay, conversationId, archetypeKey } = result;
+
+            if (message && this.isReady) {
+                // Apply humanized delay before responding
+                console.log(`[BrainResolver] Waiting ${delay}s before responding...`);
+
+                setTimeout(async () => {
+                    try {
+                        if (!this.isReady) {
+                            console.log('[BrainResolver] Client disconnected, skipping response');
+                            return;
+                        }
+
+                        await msg.reply(message);
+                        console.log(`[BrainResolver] Replied to ${contactName} (${archetypeKey}): ${message.substring(0, 50)}`);
+
+                        // Broadcast to UI
+                        this.broadcast({
+                            type: 'agent_reply',
+                            contact: contactName,
+                            message: msg.body,
+                            response: message,
+                            archetypeKey: archetypeKey,
+                            conversationId: conversationId,
+                            timestamp: new Date()
+                        });
+                    } catch (replyErr) {
+                        console.error('[BrainResolver] Failed to send reply:', replyErr.message);
+                    }
+                }, delay * 1000);
             }
         } catch (err) {
             // Silently handle errors to prevent server crash
             if (err.message !== 'Timeout') {
-                console.error('Error handling private message:', err.message);
+                console.error('[BrainResolver] Error handling private message:', err.message);
             }
         }
     }

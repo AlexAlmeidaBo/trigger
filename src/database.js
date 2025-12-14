@@ -116,6 +116,36 @@ class Database {
                 updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 UNIQUE(user_id, usage_date)
             );
+
+            CREATE TABLE IF NOT EXISTS agent_archetypes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                key TEXT UNIQUE NOT NULL,
+                niche TEXT NOT NULL,
+                subniche TEXT,
+                tone TEXT NOT NULL,
+                objective TEXT,
+                system_prompt TEXT NOT NULL,
+                policy TEXT NOT NULL,
+                is_active INTEGER DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            );
+
+            CREATE TABLE IF NOT EXISTS conversations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                contact_phone TEXT NOT NULL,
+                campaign_id INTEGER,
+                archetype_id INTEGER,
+                handoff_status TEXT DEFAULT 'NONE',
+                agent_messages_in_row INTEGER DEFAULT 0,
+                last_sender TEXT,
+                tags TEXT,
+                is_active INTEGER DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                UNIQUE(user_id, contact_phone)
+            );
         `);
 
         // Run migrations for existing databases
@@ -188,6 +218,25 @@ class Database {
             }
         } catch (e) {
             console.log('Migration message_logs:', e.message);
+        }
+
+        // Add archetype_id column to campaigns
+        try {
+            const result = this.db.exec("PRAGMA table_info(campaigns)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('archetype_id')) {
+                    console.log('Adding archetype_id column to campaigns...');
+                    this.db.run("ALTER TABLE campaigns ADD COLUMN archetype_id INTEGER");
+                }
+                if (!columns.includes('agent_enabled')) {
+                    console.log('Adding agent_enabled column to campaigns...');
+                    this.db.run("ALTER TABLE campaigns ADD COLUMN agent_enabled INTEGER DEFAULT 0");
+                }
+            }
+        } catch (e) {
+            console.log('Migration campaigns archetype:', e.message);
         }
 
         console.log('Database migrations completed');
@@ -677,6 +726,244 @@ class Database {
         }
 
         return false;
+    }
+
+    // ==========================================
+    // AGENT ARCHETYPES METHODS
+    // ==========================================
+
+    getAllArchetypes(activeOnly = true) {
+        let sql = 'SELECT * FROM agent_archetypes';
+        if (activeOnly) {
+            sql += ' WHERE is_active = 1';
+        }
+        sql += ' ORDER BY niche, key';
+
+        const result = this.db.exec(sql);
+        if (!result.length) return [];
+
+        return result[0].values.map(row => ({
+            id: row[0],
+            key: row[1],
+            niche: row[2],
+            subniche: row[3],
+            tone: row[4],
+            objective: row[5],
+            system_prompt: row[6],
+            policy: JSON.parse(row[7] || '{}'),
+            is_active: row[8],
+            created_at: row[9],
+            updated_at: row[10]
+        }));
+    }
+
+    getArchetypeById(id) {
+        const result = this.db.exec('SELECT * FROM agent_archetypes WHERE id = ?', [id]);
+        if (!result.length || !result[0].values.length) return null;
+
+        const row = result[0].values[0];
+        return {
+            id: row[0],
+            key: row[1],
+            niche: row[2],
+            subniche: row[3],
+            tone: row[4],
+            objective: row[5],
+            system_prompt: row[6],
+            policy: JSON.parse(row[7] || '{}'),
+            is_active: row[8],
+            created_at: row[9],
+            updated_at: row[10]
+        };
+    }
+
+    getArchetypeByKey(key) {
+        const result = this.db.exec('SELECT * FROM agent_archetypes WHERE key = ?', [key]);
+        if (!result.length || !result[0].values.length) return null;
+
+        const row = result[0].values[0];
+        return {
+            id: row[0],
+            key: row[1],
+            niche: row[2],
+            subniche: row[3],
+            tone: row[4],
+            objective: row[5],
+            system_prompt: row[6],
+            policy: JSON.parse(row[7] || '{}'),
+            is_active: row[8],
+            created_at: row[9],
+            updated_at: row[10]
+        };
+    }
+
+    createArchetype(data) {
+        const stmt = this.db.prepare(`
+            INSERT INTO agent_archetypes (key, niche, subniche, tone, objective, system_prompt, policy)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run([
+            data.key,
+            data.niche,
+            data.subniche || null,
+            data.tone,
+            data.objective || null,
+            data.system_prompt,
+            JSON.stringify(data.policy || {})
+        ]);
+        stmt.free();
+        this.save();
+
+        // Return the created archetype
+        return this.getArchetypeByKey(data.key);
+    }
+
+    updateArchetype(id, data) {
+        const fields = [];
+        const values = [];
+
+        if (data.key !== undefined) { fields.push('key = ?'); values.push(data.key); }
+        if (data.niche !== undefined) { fields.push('niche = ?'); values.push(data.niche); }
+        if (data.subniche !== undefined) { fields.push('subniche = ?'); values.push(data.subniche); }
+        if (data.tone !== undefined) { fields.push('tone = ?'); values.push(data.tone); }
+        if (data.objective !== undefined) { fields.push('objective = ?'); values.push(data.objective); }
+        if (data.system_prompt !== undefined) { fields.push('system_prompt = ?'); values.push(data.system_prompt); }
+        if (data.policy !== undefined) { fields.push('policy = ?'); values.push(JSON.stringify(data.policy)); }
+        if (data.is_active !== undefined) { fields.push('is_active = ?'); values.push(data.is_active ? 1 : 0); }
+
+        fields.push('updated_at = CURRENT_TIMESTAMP');
+        values.push(id);
+
+        this.db.run(`UPDATE agent_archetypes SET ${fields.join(', ')} WHERE id = ?`, values);
+        this.save();
+
+        return this.getArchetypeById(id);
+    }
+
+    deleteArchetype(id) {
+        // Soft delete by setting is_active = 0
+        this.db.run('UPDATE agent_archetypes SET is_active = 0, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [id]);
+        this.save();
+    }
+
+    // ==========================================
+    // CONVERSATIONS METHODS
+    // ==========================================
+
+    getOrCreateConversation(userId, contactPhone, archetypeId, campaignId = null) {
+        // Try to find existing conversation
+        let result = this.db.exec(
+            'SELECT * FROM conversations WHERE user_id = ? AND contact_phone = ?',
+            [userId, contactPhone]
+        );
+
+        if (result.length && result[0].values.length) {
+            const row = result[0].values[0];
+            return {
+                id: row[0],
+                user_id: row[1],
+                contact_phone: row[2],
+                campaign_id: row[3],
+                archetype_id: row[4],
+                handoff_status: row[5],
+                agent_messages_in_row: row[6],
+                last_sender: row[7],
+                tags: JSON.parse(row[8] || '[]'),
+                is_active: row[9],
+                created_at: row[10],
+                updated_at: row[11]
+            };
+        }
+
+        // Create new conversation
+        const stmt = this.db.prepare(`
+            INSERT INTO conversations (user_id, contact_phone, campaign_id, archetype_id)
+            VALUES (?, ?, ?, ?)
+        `);
+        stmt.run([userId, contactPhone, campaignId, archetypeId]);
+        stmt.free();
+        this.save();
+
+        return this.getOrCreateConversation(userId, contactPhone, archetypeId, campaignId);
+    }
+
+    updateConversation(id, data) {
+        const fields = [];
+        const values = [];
+
+        if (data.handoff_status !== undefined) { fields.push('handoff_status = ?'); values.push(data.handoff_status); }
+        if (data.agent_messages_in_row !== undefined) { fields.push('agent_messages_in_row = ?'); values.push(data.agent_messages_in_row); }
+        if (data.last_sender !== undefined) { fields.push('last_sender = ?'); values.push(data.last_sender); }
+        if (data.tags !== undefined) { fields.push('tags = ?'); values.push(JSON.stringify(data.tags)); }
+        if (data.is_active !== undefined) { fields.push('is_active = ?'); values.push(data.is_active ? 1 : 0); }
+
+        fields.push('updated_at = CURRENT_TIMESTAMP');
+        values.push(id);
+
+        this.db.run(`UPDATE conversations SET ${fields.join(', ')} WHERE id = ?`, values);
+        this.save();
+    }
+
+    getConversationById(id) {
+        const result = this.db.exec('SELECT * FROM conversations WHERE id = ?', [id]);
+        if (!result.length || !result[0].values.length) return null;
+
+        const row = result[0].values[0];
+        return {
+            id: row[0],
+            user_id: row[1],
+            contact_phone: row[2],
+            campaign_id: row[3],
+            archetype_id: row[4],
+            handoff_status: row[5],
+            agent_messages_in_row: row[6],
+            last_sender: row[7],
+            tags: JSON.parse(row[8] || '[]'),
+            is_active: row[9],
+            created_at: row[10],
+            updated_at: row[11]
+        };
+    }
+
+    getActiveConversations(userId) {
+        const result = this.db.exec(
+            'SELECT * FROM conversations WHERE user_id = ? AND is_active = 1 ORDER BY updated_at DESC',
+            [userId]
+        );
+        if (!result.length) return [];
+
+        return result[0].values.map(row => ({
+            id: row[0],
+            user_id: row[1],
+            contact_phone: row[2],
+            campaign_id: row[3],
+            archetype_id: row[4],
+            handoff_status: row[5],
+            agent_messages_in_row: row[6],
+            last_sender: row[7],
+            tags: JSON.parse(row[8] || '[]'),
+            is_active: row[9],
+            created_at: row[10],
+            updated_at: row[11]
+        }));
+    }
+
+    escalateConversation(id) {
+        this.updateConversation(id, {
+            handoff_status: 'ESCALATED',
+            tags: ['ESCALAR_HUMANO']
+        });
+    }
+
+    takeOverConversation(id) {
+        this.updateConversation(id, { handoff_status: 'HUMAN_TAKEN' });
+    }
+
+    returnToAgent(id) {
+        this.updateConversation(id, {
+            handoff_status: 'NONE',
+            agent_messages_in_row: 0
+        });
     }
 }
 
