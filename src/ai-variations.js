@@ -244,14 +244,42 @@ Responda APENAS com as variações, uma por linha, sem numeração, sem aspas, s
     applyVariables(message, contact) {
         if (!message) return message;
 
-        const name = contact?.name || 'Cliente';
         const phone = contact?.phone || '';
 
-        return message
-            .replace(/\[nome\]/gi, name)
-            .replace(/\[telefone\]/gi, phone)
-            .replace(/\[Nome\]/g, name)
-            .replace(/\[NOME\]/g, name.toUpperCase());
+        // Check if contact has a real name (not just a phone number)
+        let name = contact?.name || '';
+
+        // If name is empty, equals the phone, or is only digits, consider it as "no name"
+        const isValidName = name &&
+            name !== phone &&
+            !/^\+?\d[\d\s\-]+$/.test(name) && // not just digits
+            name.length > 1;
+
+        let result = message;
+
+        if (isValidName) {
+            // Replace [nome] with the actual name
+            result = result
+                .replace(/\[nome\]/gi, name)
+                .replace(/\[Nome\]/g, name)
+                .replace(/\[NOME\]/g, name.toUpperCase());
+        } else {
+            // Remove [nome] and surrounding patterns when no name is available
+            // Handle patterns like "Olá [nome]," -> "Olá,"
+            // Or "Olá, [nome]!" -> "Olá!"
+            result = result
+                .replace(/,?\s*\[nome\],?/gi, '')  // Remove ", [nome]," or " [nome]"
+                .replace(/\[nome\]\s*,?\s*/gi, '') // Remove "[nome], " at start
+                .replace(/\[Nome\]\s*,?\s*/gi, '')
+                .replace(/\[NOME\]\s*,?\s*/gi, '')
+                .replace(/\s{2,}/g, ' ')  // Clean up double spaces
+                .trim();
+        }
+
+        // Replace phone variable
+        result = result.replace(/\[telefone\]/gi, phone);
+
+        return result;
     }
 
     // Get random variation
