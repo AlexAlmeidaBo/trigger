@@ -364,6 +364,7 @@ button {
         color 0.3s ease,
         box-shadow 0.3s ease;
 }
+
 /* Disabled nav item */
 .nav-item.disabled {
     opacity: 0.5;
@@ -524,9 +525,17 @@ button {
     border-radius: 4px;
 }
 
-.placeholder-line.long { width: 100%; }
-.placeholder-line.medium { width: 75%; }
-.placeholder-line.short { width: 50%; }
+.placeholder-line.long {
+    width: 100%;
+}
+
+.placeholder-line.medium {
+    width: 75%;
+}
+
+.placeholder-line.short {
+    width: 50%;
+}
 
 .placeholder-textarea {
     height: 120px;
@@ -594,9 +603,11 @@ button {
     .agent-placeholder-grid {
         grid-template-columns: 1fr;
     }
+
     .placeholder-card.wide {
         grid-column: span 1;
     }
+
     .placeholder-stats {
         grid-template-columns: repeat(2, 1fr);
     }
@@ -609,9 +620,11 @@ button {
 }
 
 .modal-lg .modal-body {
-    max-height: 70vh !important;
-    min-height: 400px;
+    flex: 1 !important;
+    min-height: 0;
+    max-height: none !important;
     padding: 24px !important;
+    overflow-y: auto;
 }
 
 .modal-lg .modal-header {
@@ -629,81 +642,297 @@ button {
 /* Contact Selection Modal Improvements */
 .modal-selection-actions {
     display: flex;
+    flex-wrap: wrap;
     gap: 12px;
     align-items: center;
-    padding: 16px !important;
-    background: var(--bg-tertiary);
-    border-radius: 12px;
-    margin-bottom: 20px !important;
+    padding: 16px 20px !important;
+    background: linear-gradient(135deg, rgba(0, 210, 106, 0.08), rgba(0, 210, 106, 0.02));
+    border: 1px solid rgba(0, 210, 106, 0.2);
+    border-radius: 16px;
+    margin-bottom: 24px !important;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    backdrop-filter: blur(10px);
 }
 
 .modal-selection-actions .btn {
-    padding: 10px 20px !important;
-    font-size: 0.9rem !important;
+    padding: 10px 18px !important;
+    font-size: 0.85rem !important;
+    border-radius: 10px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.modal-selection-actions .btn:hover {
+    transform: translateY(-2px);
+}
+
+.modal-selection-actions .btn-select-all {
+    background: rgba(0, 210, 106, 0.15);
+    color: var(--accent);
+    border: 1px solid rgba(0, 210, 106, 0.3);
+}
+
+.modal-selection-actions .btn-select-all:hover {
+    background: rgba(0, 210, 106, 0.25);
+    border-color: var(--accent);
+}
+
+.modal-selection-actions .btn-clear {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.modal-selection-actions .btn-clear:hover {
+    background: rgba(239, 68, 68, 0.2);
+    border-color: #ef4444;
 }
 
 .modal-contacts-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
     gap: 12px;
+    padding-bottom: 20px;
 }
 
 .modal-contact-item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 16px !important;
+    gap: 14px;
+    padding: 14px 16px !important;
     background: var(--bg-card);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
+    border-radius: 14px;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.25s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.modal-contact-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: transparent;
+    transition: background 0.25s ease;
 }
 
 .modal-contact-item:hover {
     background: var(--bg-card-hover);
     border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
 }
 
-.modal-contact-item input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--accent);
+.modal-contact-item:has(input:checked) {
+    background: rgba(0, 210, 106, 0.08);
+    border-color: var(--accent);
 }
 
-.modal-contact-item strong {
-    display: block;
-    font-size: 1rem;
-    margin-bottom: 2px;
-}
-
-.modal-contact-item small {
-    color: var(--text-muted);
-    font-size: 0.85rem;
-}
-
-/* Selection count badge */
-.selection-count {
+.modal-contact-item:has(input:checked)::before {
     background: var(--accent);
+}
+
+.modal-contact-item .contact-avatar {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, rgba(0, 210, 106, 0.2), rgba(0, 168, 85, 0.3));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+}
+
+.modal-contact-item .contact-checkbox {
+    width: 22px;
+    height: 22px;
+    min-width: 22px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    border-radius: 6px;
+}
+
+.modal-contact-item .contact-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.modal-contact-item .contact-info strong {
+    display: block;
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 3px;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-contact-item .contact-info small {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.modal-contact-item .contact-info small svg {
+    width: 12px;
+    height: 12px;
+    opacity: 0.7;
+}
+
+/* Selection count badge - enhanced */
+.selection-count {
+    background: linear-gradient(135deg, var(--accent), #00a855);
     color: white;
-    padding: 4px 12px;
+    padding: 8px 16px;
+    border-radius: 24px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-left: auto;
+    box-shadow: 0 4px 12px rgba(0, 210, 106, 0.3);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.selection-count .count-number {
+    font-size: 1.1rem;
+}
+
+/* Modal footer - enhanced with prominent confirm button */
+.modal-lg .modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding: 20px 24px !important;
+    background: var(--bg-tertiary);
+    border-top: 1px solid var(--border-color);
+    border-radius: 0 0 16px 16px;
+}
+
+.modal-footer .btn {
+    padding: 14px 28px !important;
+    font-size: 1rem !important;
+    font-weight: 600;
+    border-radius: 12px;
+    transition: all 0.25s ease;
+}
+
+.modal-footer .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #00a855);
+    box-shadow: 0 4px 16px rgba(0, 210, 106, 0.35);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.modal-footer .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 210, 106, 0.45);
+}
+
+.modal-footer .btn-primary svg {
+    width: 18px;
+    height: 18px;
+}
+
+.modal-footer .btn-secondary {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.modal-footer .btn-secondary:hover {
+    border-color: var(--text-muted);
+    color: var(--text-primary);
+}
+
+/* Footer with actions - two column layout */
+.modal-footer-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.modal-footer-actions .footer-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.modal-footer-actions .footer-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-footer-actions .btn-select-all,
+.modal-footer-actions .btn-clear {
+    padding: 10px 16px !important;
+    font-size: 0.9rem !important;
+}
+
+.modal-footer-actions .selection-count {
+    background: linear-gradient(135deg, rgba(0, 210, 106, 0.15), rgba(0, 168, 85, 0.1));
+    color: var(--accent);
+    padding: 8px 14px;
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 4px;
 }
 
-/* Modal footer buttons */
-.modal-footer .btn {
-    padding: 12px 24px !important;
-    font-size: 1rem !important;
+.modal-footer-actions .selection-count .count-number {
+    font-size: 1rem;
 }
 
 @media (max-width: 768px) {
     .modal-contacts-list {
         grid-template-columns: 1fr;
     }
+
     .modal-content.modal-lg {
         max-width: 100% !important;
+    }
+
+    .modal-selection-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .selection-count {
+        margin-left: 0;
+        justify-content: center;
+    }
+
+    .modal-footer {
+        flex-direction: column;
+    }
+
+    .modal-footer .btn {
+        width: 100%;
+        justify-content: center;
     }
 }
 
@@ -716,9 +945,11 @@ button {
     .sidebar {
         width: 72px !important;
     }
+
     .nav-item {
         position: relative;
     }
+
     .nav-item::after {
         content: attr(data-tooltip);
         position: absolute;
@@ -738,6 +969,7 @@ button {
         border: 1px solid var(--border-color);
         z-index: 100;
     }
+
     .nav-item:hover::after {
         opacity: 1;
         visibility: visible;
@@ -747,6 +979,7 @@ button {
 
 /* Mobile improvements */
 @media (max-width: 768px) {
+
     /* Fix content overflow */
     .main-content {
         padding: 72px 12px 24px !important;
@@ -987,8 +1220,13 @@ button {
 }
 
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 @media (max-width: 480px) {
@@ -998,6 +1236,7 @@ button {
         font-size: 1.2rem;
         gap: 4px;
     }
+
     .pairing-code-display {
         gap: 4px;
     }
@@ -1009,6 +1248,7 @@ button {
 
 /* Fix sidebar in mobile - hidden by default */
 @media (max-width: 768px) {
+
     /* Hide sidebar completely on mobile when closed */
     .sidebar {
         position: fixed !important;
@@ -1063,7 +1303,9 @@ button {
     }
 
     /* Form inputs full width */
-    input, select, textarea {
+    input,
+    select,
+    textarea {
         width: 100% !important;
         max-width: 100% !important;
         box-sizing: border-box !important;
@@ -1163,7 +1405,7 @@ button {
     border-radius: 8px;
     cursor: pointer;
     padding: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .mobile-menu-toggle svg {
@@ -1179,7 +1421,7 @@ button {
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0,0,0,0.5);
+    background: rgba(0, 0, 0, 0.5);
     z-index: 999;
 }
 
@@ -1249,6 +1491,7 @@ button {
 
 /* Fix connection status and agent badge on mobile */
 @media (max-width: 768px) {
+
     /* Connection status - only show dot when sidebar closed */
     .sidebar .connection-status {
         justify-content: center;
@@ -1341,6 +1584,7 @@ button {
 
 /* Tablet breakpoint (769px - 1024px) */
 @media (max-width: 1024px) and (min-width: 769px) {
+
     /* Collapse sidebar to icons only */
     .sidebar {
         width: 70px !important;

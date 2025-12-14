@@ -39,6 +39,7 @@ const Campaigns = {
     showContactModal() {
         const modal = document.getElementById('contactSelectModal');
         const listEl = document.getElementById('modalContactsList');
+        const footer = modal.querySelector('.modal-footer');
 
         if (Contacts.contacts.length === 0) {
             Toast.warning('Importe contatos primeiro');
@@ -47,19 +48,48 @@ const Campaigns = {
 
         modal.classList.remove('hidden');
 
-        // Build HTML with select all buttons
-        const actionsHtml = `
-            <div class="modal-selection-actions" style="margin-bottom: 16px; display: flex; gap: 12px; align-items: center; padding: 12px; background: var(--bg-tertiary); border-radius: 8px;">
-                <button class="btn btn-secondary btn-sm" id="selectAllBtn" onclick="Campaigns.selectAllContacts()">
-                    ✓ Selecionar Todos
+        // Update footer with selection controls
+        footer.className = 'modal-footer modal-footer-actions';
+        footer.innerHTML = `
+            <div class="footer-left">
+                <button class="btn btn-select-all" onclick="Campaigns.selectAllContacts()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"/></svg>
+                    Todos
                 </button>
-                <button class="btn btn-secondary btn-sm" id="clearSelectionBtn" onclick="Campaigns.clearContactSelection()">
-                    ✗ Limpar Seleção
+                <button class="btn btn-clear" onclick="Campaigns.clearContactSelection()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Limpar
                 </button>
-                <span style="margin-left: auto; color: var(--primary); font-weight: 600;" id="modalSelectedCount">${this.selectedContacts.length} de ${Contacts.contacts.length}</span>
+                <div class="selection-count" id="modalSelectedCount">
+                    <span class="count-number">${this.selectedContacts.length}</span> de ${Contacts.contacts.length}
+                </div>
+            </div>
+            <div class="footer-right">
+                <button class="btn btn-secondary" id="cancelContactSelect">Cancelar</button>
+                <button class="btn btn-primary" id="confirmContactSelect">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                    Confirmar
+                </button>
             </div>
         `;
 
+        // Re-bind events for the new buttons
+        footer.querySelector('#cancelContactSelect').addEventListener('click', () => this.hideContactModal());
+        footer.querySelector('#confirmContactSelect').addEventListener('click', () => this.confirmContactSelection());
+
+        // Helper function to get contact initials
+        const getInitials = (name, phone) => {
+            if (name && name !== phone) {
+                const parts = name.trim().split(' ');
+                if (parts.length >= 2) {
+                    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+                }
+                return name.substring(0, 2).toUpperCase();
+            }
+            return phone ? phone.slice(-2) : '??';
+        };
+
+        // Build contact cards only (no header actions)
         const contactsHtml = Contacts.contacts.map(contact => `
             <label class="modal-contact-item">
                 <input type="checkbox" 
@@ -67,14 +97,18 @@ const Campaigns = {
                        data-id="${contact.id}"
                        onchange="Campaigns.updateModalCount()"
                        ${this.selectedContacts.includes(contact.id) ? 'checked' : ''}>
-                <div>
+                <div class="contact-avatar">${getInitials(contact.name, contact.phone)}</div>
+                <div class="contact-info">
                     <strong>${contact.name || contact.phone}</strong>
-                    <small>${Contacts.formatPhone(contact.phone)}</small>
+                    <small>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        ${Contacts.formatPhone(contact.phone)}
+                    </small>
                 </div>
             </label>
         `).join('');
 
-        listEl.innerHTML = actionsHtml + contactsHtml;
+        listEl.innerHTML = contactsHtml;
     },
 
     selectAllContacts() {
@@ -92,7 +126,7 @@ const Campaigns = {
         const total = Contacts.contacts.length;
         const countEl = document.getElementById('modalSelectedCount');
         if (countEl) {
-            countEl.textContent = `${checked} de ${total}`;
+            countEl.innerHTML = `<span class="count-number">${checked}</span> de ${total}`;
         }
     },
 

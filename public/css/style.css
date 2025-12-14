@@ -1193,8 +1193,9 @@ small {
     border-radius: var(--radius-xl);
     width: 100%;
     max-width: 500px;
-    max-height: 80vh;
-    overflow: hidden;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
     animation: slideUp 0.3s ease;
 }
 
@@ -1249,8 +1250,9 @@ small {
 
 .modal-body {
     padding: 24px;
-    max-height: 50vh;
+    flex: 1;
     overflow-y: auto;
+    min-height: 0;
 }
 
 .modal-footer {
@@ -1259,6 +1261,8 @@ small {
     gap: 12px;
     padding: 16px 24px;
     border-top: 1px solid rgba(255, 255, 255, 0.05);
+    background: var(--bg-secondary);
+    flex-shrink: 0;
 }
 
 .groups-list,
