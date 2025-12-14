@@ -937,6 +937,152 @@ button {
 }
 
 /* ============================
+   Agent Section Styles
+   ============================ */
+
+.agent-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+@media (max-width: 992px) {
+    .agent-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.agent-config-card,
+.agent-logs-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 24px;
+}
+
+.card-header-with-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.card-header-with-toggle h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.agent-toggle-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.status-indicator {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    transition: all 0.3s ease;
+}
+
+.status-dot.active {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+}
+
+.status-dot.inactive {
+    background: var(--text-muted);
+}
+
+.agent-logs-card .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.agent-logs-card .card-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.agent-logs-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.empty-logs {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.empty-logs svg {
+    width: 48px;
+    height: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+
+.empty-logs p {
+    margin: 0 0 8px 0;
+    font-weight: 500;
+}
+
+.empty-logs small {
+    font-size: 0.85rem;
+}
+
+.agent-log-item {
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    padding: 14px;
+    margin-bottom: 12px;
+}
+
+.agent-log-item .contact {
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+.agent-log-item .message,
+.agent-log-item .response {
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.agent-log-item .message {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+}
+
+.agent-log-item .response {
+    background: rgba(0, 210, 106, 0.1);
+    color: var(--text-primary);
+}
+
+.agent-log-item .time {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 8px;
+}
+
+/* ============================
    Mobile Experience Improvements
    ============================ */
 

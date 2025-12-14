@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -23,7 +23,7 @@
                 <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
         </button>
-        
+
         <!-- Sidebar Overlay -->
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
@@ -76,7 +76,7 @@
                     </svg>
                     <span>Relatórios</span>
                 </a>
-                            <a href="#" class="nav-item" data-section="agent">
+                <a href="#" class="nav-item" data-section="agent">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="10" />
                         <path d="M8 14s1.5 2 4 2 4-2 4-2" />
@@ -564,61 +564,59 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
                     </div>
                 </div>
             </section>
-        
+
             <!-- Agent IA Section -->
             <section id="agent" class="section">
                 <div class="section-header">
                     <h1>Agente de IA</h1>
                     <p>Configure seu agente inteligente para responder mensagens automaticamente</p>
-                    <span class="coming-soon-banner">🚀 Em desenvolvimento - Em breve!</span>
+
                 </div>
 
-                <div class="agent-placeholder-grid">
-                    <!-- Placeholder 1: Configurações do Agente -->
-                    <div class="placeholder-card">
-                        <div class="placeholder-header"></div>
-                        <div class="placeholder-body">
-                            <div class="placeholder-line long"></div>
-                            <div class="placeholder-line medium"></div>
-                            <div class="placeholder-line short"></div>
+                <div class="agent-grid">
+                    <!-- Agent Config Card -->
+                    <div class="card agent-config-card">
+                        <div class="card-header-with-toggle">
+                            <h3>Configuracao do Agente</h3>
+                            <div class="agent-toggle-wrapper">
+                                <span class="status-indicator">
+                                    <span class="status-dot inactive" id="agentStatusDot"></span>
+                                    <span id="agentStatus">Desativado</span>
+                                </span>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="enableAgent">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
                         </div>
-                        <div class="placeholder-footer">
-                            <div class="placeholder-btn"></div>
+
+                        <div class="form-group">
+                            <label for="agentPrompt">Personalidade / Instrucoes</label>
+                            <textarea id="agentPrompt" rows="6" placeholder="Descreva como o agente deve se comportar...
+
+Exemplo:
+Voce e um assistente de vendas amigavel. Responda duvidas sobre produtos, precos e prazos de entrega."></textarea>
+                            <small>Diga ao agente como ele deve responder. Seja especifico sobre tom, informacoes e
+                                limites.</small>
+                        </div>
+
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveAgentConfig">Salvar Configuracao</button>
                         </div>
                     </div>
 
-                    <!-- Placeholder 2: Personalidade -->
-                    <div class="placeholder-card">
-                        <div class="placeholder-header"></div>
-                        <div class="placeholder-body">
-                            <div class="placeholder-textarea"></div>
+                    <!-- Agent Logs Card -->
+                    <div class="card agent-logs-card">
+                        <div class="card-header">
+                            <h3>Conversas do Bot</h3>
+                            <button class="btn btn-sm btn-secondary" onclick="Agent.loadLogs()">Atualizar</button>
                         </div>
-                        <div class="placeholder-footer">
-                            <div class="placeholder-btn"></div>
-                            <div class="placeholder-btn small"></div>
-                        </div>
-                    </div>
 
-                    <!-- Placeholder 3: Estatísticas -->
-                    <div class="placeholder-card wide">
-                        <div class="placeholder-header"></div>
-                        <div class="placeholder-stats">
-                            <div class="placeholder-stat-box"></div>
-                            <div class="placeholder-stat-box"></div>
-                            <div class="placeholder-stat-box"></div>
-                            <div class="placeholder-stat-box"></div>
-                        </div>
-                    </div>
-
-                    <!-- Placeholder 4: Histórico -->
-                    <div class="placeholder-card tall">
-                        <div class="placeholder-header"></div>
-                        <div class="placeholder-list">
-                            <div class="placeholder-list-item"></div>
-                            <div class="placeholder-list-item"></div>
-                            <div class="placeholder-list-item"></div>
-                            <div class="placeholder-list-item"></div>
-                            <div class="placeholder-list-item"></div>
+                        <div class="agent-logs-container" id="agentLogs">
+                            <div class="empty-logs">
+                                <p>Nenhuma conversa ainda</p>
+                                <small>As conversas do bot aparecerao aqui em tempo real</small>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -645,7 +643,7 @@ Olá, [nome]! Temos uma oferta especial para você!"></textarea>
     <script src="js/messages.js"></script>
     <script src="js/campaigns.js"></script>
     <script src="js/reports.js"></script>
-    <script src="js/delay-config.js"></script>
+    <script src="js/delay-config.js"></script>`n    <script src="js/agent.js"></script>
 </body>
 
 </html>

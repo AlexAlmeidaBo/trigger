@@ -115,11 +115,10 @@ class WhatsAppManager {
             // Handle incoming messages
             console.log('Message received from:', msg.from, '- Body:', msg.body.substring(0, 50));
 
-            // Agent is currently in STANDBY - uncomment to enable
             // Only respond to private messages (not groups)
-            // if (!msg.isGroupMsg && !msg.fromMe) {
-            //     await this.handlePrivateMessage(msg);
-            // }
+            if (!msg.isGroupMsg && !msg.fromMe) {
+                await this.handlePrivateMessage(msg);
+            }
         });
     }
 
