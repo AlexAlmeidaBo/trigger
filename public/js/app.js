@@ -5,6 +5,7 @@ const App = {
     selectedContacts: [],
     messageContent: '',
     user: null,
+    isAdmin: false,
 
     async init() {
         // Check authentication first
@@ -18,6 +19,9 @@ const App = {
         this.initModules();
         this.setupLogout();
         this.setupMobileMenu();
+
+        // Hide admin links for non-admin users
+        this.hideAdminLinks();
 
         // Block premium features for free users
         setTimeout(() => this.blockPremiumFeatures(), 100);
@@ -48,6 +52,7 @@ const App = {
         if (this.user && ADMIN_EMAILS.includes(this.user.email)) {
             console.log('Admin account detected');
             this.isPremium = true;
+            this.isAdmin = true;
             return true;
         }
 
@@ -181,6 +186,28 @@ const App = {
                 aiCard.appendChild(lock);
             }
         }
+    },
+
+    // Hide admin links for non-admin users
+    hideAdminLinks() {
+        if (this.isAdmin) {
+            console.log('Admin user - showing admin links');
+            return; // Admin can see everything
+        }
+
+        // Hide the admin navigation section
+        const navAdmin = document.querySelector('.nav-admin');
+        if (navAdmin) {
+            navAdmin.style.display = 'none';
+        }
+
+        // Hide the divider
+        const navDivider = document.querySelector('.nav-divider');
+        if (navDivider) {
+            navDivider.style.display = 'none';
+        }
+
+        console.log('Non-admin user - admin links hidden');
     },
 
     setupLogout() {
