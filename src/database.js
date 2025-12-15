@@ -293,6 +293,20 @@ class Database {
             console.log('Migration conversations enhancements:', e.message);
         }
 
+        // Add plan_id to subscriptions
+        try {
+            const result = this.db.exec("PRAGMA table_info(subscriptions)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+                if (!columns.includes('plan_id')) {
+                    console.log('Adding plan_id column to subscriptions...');
+                    this.db.run("ALTER TABLE subscriptions ADD COLUMN plan_id TEXT DEFAULT 'FREE'");
+                }
+            }
+        } catch (e) {
+            console.log('Migration subscriptions plan_id:', e.message);
+        }
+
         console.log('Database migrations completed');
     }
 
