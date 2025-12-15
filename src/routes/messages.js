@@ -130,21 +130,50 @@ router.post('/campaigns', async (req, res) => {
         const userId = getUserId(req);
         const { name, message, contactIds, delayConfig, delaySeconds, variationLevel } = req.body;
 
-        // Support both old delaySeconds and new delayConfig
-        const config = delayConfig || {
-            delayMin: delaySeconds || 5,
-            delayMax: delaySeconds || 5,
-            batchSize: 10,
-            batchDelayMin: 30,
-            batchDelayMax: 60
+        // ANTI-SPAM PROTECTION: Enforce minimum safe delays
+        // WhatsApp blocks even 15-35s delays, so we need much higher minimums
+        const SAFE_MINIMUMS = {
+            delayMin: 60,        // At least 60 seconds between messages
+            delayMax: 180,       // Up to 3 minutes between messages  
+            batchSize: 3,        // Only 3 messages per batch
+            batchDelayMin: 300,  // 5 minute pause between batches
+            batchDelayMax: 600   // Up to 10 minute pause between batches
         };
 
-        console.log('Creating campaign:', { name, contacts: contactIds?.length, delayConfig: config, variationLevel });
+        // Get user config or defaults
+        let config = delayConfig || {
+            delayMin: SAFE_MINIMUMS.delayMin,
+            delayMax: SAFE_MINIMUMS.delayMax,
+            batchSize: SAFE_MINIMUMS.batchSize,
+            batchDelayMin: SAFE_MINIMUMS.batchDelayMin,
+            batchDelayMax: SAFE_MINIMUMS.batchDelayMax
+        };
+
+        // ENFORCE MINIMUMS: Don't allow unsafe delays
+        config.delayMin = Math.max(config.delayMin || 60, SAFE_MINIMUMS.delayMin);
+        config.delayMax = Math.max(config.delayMax || 180, SAFE_MINIMUMS.delayMax);
+        config.batchSize = Math.min(config.batchSize || 3, SAFE_MINIMUMS.batchSize);
+        config.batchDelayMin = Math.max(config.batchDelayMin || 300, SAFE_MINIMUMS.batchDelayMin);
+        config.batchDelayMax = Math.max(config.batchDelayMax || 600, SAFE_MINIMUMS.batchDelayMax);
+
+        console.log('Creating campaign with SAFE config:', { name, contacts: contactIds?.length, delayConfig: config, variationLevel });
 
         if (!message || !contactIds || contactIds.length === 0) {
             return res.status(400).json({
                 success: false,
                 error: 'Message and contacts are required'
+            });
+        }
+
+        // ANTI-SPAM: Limit max contacts per campaign to avoid detection
+        const MAX_CONTACTS_PER_CAMPAIGN = 20;
+        if (contactIds.length > MAX_CONTACTS_PER_CAMPAIGN) {
+            return res.status(400).json({
+                success: false,
+                error: `⚠️ Máximo ${MAX_CONTACTS_PER_CAMPAIGN} contatos por campanha para evitar bloqueio do WhatsApp. Você selecionou ${contactIds.length}.`,
+                code: 'MAX_CONTACTS_EXCEEDED',
+                maxContacts: MAX_CONTACTS_PER_CAMPAIGN,
+                selectedContacts: contactIds.length
             });
         }
 
