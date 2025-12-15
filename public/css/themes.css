@@ -1999,3 +1999,46 @@ button {
 .main-content {
     transition: margin-left 0.3s ease;
 }
+
+/* ===================================
+   Navigation Divider & Admin Links
+   =================================== */
+
+.nav-divider {
+    height: 1px;
+    background: var(--border-color, #1f1f1f);
+    margin: 12px 16px;
+}
+
+.nav-admin {
+    padding: 0 8px;
+    margin-top: 8px;
+}
+
+.nav-admin .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    color: var(--text-secondary, #a0a0a0);
+    text-decoration: none;
+    border-radius: 8px;
+    margin-bottom: 4px;
+    transition: all 0.2s ease;
+    font-size: 14px;
+}
+
+.nav-admin .nav-item:hover {
+    background: var(--bg-tertiary, #1a1a25);
+    color: var(--primary, #00d26a);
+}
+
+.nav-admin .nav-item svg {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+}
+
+.nav-admin .nav-item span {
+    white-space: nowrap;
+}
