@@ -60,14 +60,23 @@ class PolicyLayer {
     // Bot suspicion - THESE escalate or trigger special handling
     static BOT_SUSPICION = [
         'vc e bot',
+        'vc é bot',
         'voce e bot',
+        'voce é bot',
+        'você e bot',
         'você é bot',
         'parece bot',
         'parece robo',
+        'parece robô',
         'vc e ia',
+        'vc é ia',
         'voce e ia',
+        'voce é ia',
+        'você é ia',
         'isso e automatico',
-        'resposta automatica'
+        'isso é automatico',
+        'resposta automatica',
+        'resposta automática'
     ];
 
     /**
