@@ -1,39 +1,97 @@
 /**
- * Policy Layer - Validates and sanitizes agent responses
+ * Policy Layer v2 - Validates and sanitizes agent responses
  * 
  * POLICY IS LAW. Prompt is suggestion.
  * 
- * This module is responsible for:
- * - Enforcing max message length
- * - Detecting stop rules in user messages (CALA)
- * - Detecting escalation rules (ESCALA)
- * - Filtering forbidden words (BLOCKLIST)
- * - Blocking links, prices, CTAs
- * - Ensuring monotematic responses
- * - Logging all decisions with reasons
+ * v2 Changes:
+ * - hasForbidden() for terms with spaces
+ * - Removed "automatico" from global forbidden (religious niches use it)
+ * - Naked price detection (19,90 with monetary context)
+ * - Stop rules work for messages >30 chars without "?"
+ * - Identity questions don't escalate (only bot suspicion does)
+ * - Custom safe_responses per policy
+ * - Custom handoff_message per policy
+ * - Improved link regex (fewer false positives)
  */
 
 class PolicyLayer {
 
-    // Default forbidden words that should NEVER appear in responses
+    // Default forbidden words - NEVER appear in responses
+    // Note: "automatico" removed (legitimate in religious context: "oração no automático")
     static GLOBAL_FORBIDDEN = [
-        // Tech terms
+        // Tech terms (single words)
         'nicho', 'cerebro', 'archetype', 'arquetipo',
-        'bot', 'robo', 'automatizado', 'automatico',
-        'ia', 'inteligencia artificial', 'machine learning',
-        'algoritmo', 'programado', 'configurado',
-        'sistema', 'software', 'api', 'backend',
+        'bot', 'robo', 'automatizado', 'automacao',
+        'programado', 'configurado', 'algoritmo',
+        'software', 'api', 'backend', 'frontend',
         'prompt', 'gpt', 'openai', 'chatgpt', 'llm',
-        // Identity reveals
-        'assistente virtual', 'agente virtual', 'chatbot'
+        'chatbot',
+        // Multi-word terms (will use includes)
+        'inteligencia artificial',
+        'assistente virtual',
+        'agente virtual',
+        'machine learning',
+        'ia generativa'
     ];
 
     // Payment/sales blocklist
     static SALES_BLOCKLIST = [
-        'checkout', 'pagamento', 'pagar', 'comprar agora',
+        'checkout', 'pagamento', 'pagar agora', 'comprar agora',
         'cartao de credito', 'pix', 'boleto', 'parcelado',
-        'clique aqui', 'acesse o link', 'link na bio'
+        'clique aqui', 'acesse o link', 'link na bio',
+        'aproveite a oferta', 'promocao relampago'
     ];
+
+    // Identity questions - don't escalate, just need persona affirmation
+    static IDENTITY_QUESTIONS = [
+        'com quem eu falo',
+        'quem e voce',
+        'quem é você',
+        'vc e voce mesma',
+        'é você mesma',
+        'e vc mesma',
+        'é vc',
+        'e a pastora',
+        'é a pastora',
+        'falo com quem',
+        'quem ta falando'
+    ];
+
+    // Bot suspicion - THESE escalate or trigger special handling
+    static BOT_SUSPICION = [
+        'vc e bot',
+        'voce e bot',
+        'você é bot',
+        'parece bot',
+        'parece robo',
+        'vc e ia',
+        'voce e ia',
+        'isso e automatico',
+        'resposta automatica'
+    ];
+
+    /**
+     * Check if text contains forbidden word
+     * Handles multi-word terms (with spaces) differently from single words
+     */
+    static hasForbidden(text, word) {
+        const lowerText = text.toLowerCase();
+        const lowerWord = word.toLowerCase();
+
+        // If word contains space, use simple includes (more reliable)
+        if (lowerWord.includes(' ')) {
+            return lowerText.includes(lowerWord);
+        }
+
+        // Single word: use word boundary regex
+        try {
+            const regex = new RegExp(`\\b${this.escapeRegex(lowerWord)}\\b`, 'i');
+            return regex.test(lowerText);
+        } catch (e) {
+            // Fallback to includes if regex fails
+            return lowerText.includes(lowerWord);
+        }
+    }
 
     /**
      * Main validation entry point - returns structured result
@@ -54,15 +112,14 @@ class PolicyLayer {
             logs.push(`TRUNCATED: ${response.length} -> ${sanitized.length} chars`);
         }
 
-        // 2. FORBIDDEN WORDS - Block completely
+        // 2. FORBIDDEN WORDS - Using hasForbidden for proper detection
         const forbiddenWords = [
             ...this.GLOBAL_FORBIDDEN,
             ...(policy.forbidden_words || [])
         ];
 
         for (const word of forbiddenWords) {
-            const regex = new RegExp(`\\b${this.escapeRegex(word)}\\b`, 'gi');
-            if (regex.test(sanitized)) {
+            if (this.hasForbidden(sanitized, word)) {
                 logs.push(`BLOCKED: Forbidden word "${word}"`);
                 return {
                     allowed: true,
@@ -73,10 +130,9 @@ class PolicyLayer {
             }
         }
 
-        // 3. LINKS - Block or remove
+        // 3. LINKS - Improved regex with fewer false positives
         if (!policy.allow_links) {
-            const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)|(\w+\.com[^\s]*)/gi;
-            if (urlRegex.test(sanitized)) {
+            if (this.hasLink(sanitized)) {
                 logs.push('BLOCKED: Link detected');
                 return {
                     allowed: true,
@@ -87,22 +143,22 @@ class PolicyLayer {
             }
         }
 
-        // 4. PRICE/PAYMENT - Block completely
+        // 4. PRICE/PAYMENT - Including naked prices with monetary context
         if (!policy.allow_price) {
-            const priceRegex = /R\$\s*[\d.,]+|(\d+)\s*(reais|real)/gi;
-            if (priceRegex.test(sanitized)) {
-                logs.push('BLOCKED: Price detected');
+            const priceResult = this.detectPrice(sanitized);
+            if (priceResult.detected) {
+                logs.push(`BLOCKED: ${priceResult.reason}`);
                 return {
                     allowed: true,
                     response: this.getSafeResponse(policy),
-                    reason: 'PRICE_BLOCKED',
+                    reason: priceResult.reason,
                     logs
                 };
             }
 
             // Also check sales blocklist
             for (const term of this.SALES_BLOCKLIST) {
-                if (sanitized.toLowerCase().includes(term)) {
+                if (this.hasForbidden(sanitized, term)) {
                     logs.push(`BLOCKED: Sales term "${term}"`);
                     return {
                         allowed: true,
@@ -120,7 +176,8 @@ class PolicyLayer {
             'sou um robo', 'sou programado', 'sou automatizado',
             'nao sou humano', 'sou uma inteligencia',
             'sou um assistente', 'sou um chatbot',
-            'fui programad', 'me programaram', 'meu criador'
+            'fui programad', 'me programaram', 'meu criador',
+            'minha programacao'
         ];
 
         for (const phrase of botConfirmations) {
@@ -151,6 +208,50 @@ class PolicyLayer {
     }
 
     /**
+     * Detect prices - including naked prices with monetary context
+     */
+    static detectPrice(text) {
+        const lowerText = text.toLowerCase();
+
+        // Explicit price patterns
+        const explicitPrice = /R\$\s*[\d.,]+|(\d+)\s*(reais|real)/gi;
+        if (explicitPrice.test(text)) {
+            return { detected: true, reason: 'PRICE_BLOCKED' };
+        }
+
+        // Naked price (19,90 or 19.90) with monetary context
+        const nakedMoneyRegex = /\b\d{1,3}([.,]\d{2})\b/;
+        const moneyContextRegex = /(valor|custa|por apenas|fica|investimento|preço|preco|pagar|pagamento|parcela|mensalidade)/i;
+
+        if (nakedMoneyRegex.test(text) && moneyContextRegex.test(lowerText)) {
+            return { detected: true, reason: 'PRICE_BLOCKED_NAKED' };
+        }
+
+        return { detected: false, reason: null };
+    }
+
+    /**
+     * Detect links with improved regex (fewer false positives)
+     */
+    static hasLink(text) {
+        // Priority 1: Clear URLs with protocol
+        if (/https?:\/\/[^\s]+/i.test(text)) return true;
+
+        // Priority 2: www. prefix
+        if (/www\.[^\s]+/i.test(text)) return true;
+
+        // Priority 3: Common TLDs with path (not just domain)
+        // Matches: site.com/path, site.com.br/path
+        // Does NOT match: email@domain.com, just "meu.com" without path
+        if (/[a-zA-Z0-9-]+\.(com|net|org|io|app|br|me)(\/[^\s]*)/i.test(text)) return true;
+
+        // Priority 4: bit.ly, t.co style shorteners
+        if (/\b(bit\.ly|t\.co|goo\.gl|tinyurl\.com|rb\.gy)\/[^\s]+/i.test(text)) return true;
+
+        return false;
+    }
+
+    /**
      * Simple validate (backward compatible)
      */
     static validate(response, policy = {}) {
@@ -160,32 +261,42 @@ class PolicyLayer {
 
     /**
      * Check if user message triggers a stop rule (CALA)
+     * v2: Works for messages >30 chars if no "?" present
      * @returns {{ stop: boolean, reason: string|null }}
      */
     static shouldStopWithReason(message, stopRules = []) {
         if (!message) return { stop: false, reason: null };
 
         const lowerMessage = message.toLowerCase().trim();
+        const hasQuestion = message.includes('?');
 
         // Default stop rules if none provided
         const rules = stopRules.length > 0 ? stopRules : [
-            'amem', 'ok', 'deus abencoe', 'obrigad', 'ate mais',
-            'bom dia', 'boa noite', 'valeu', 'vlw', 'blz', 'tchau', 'fui'
+            'amem', 'amém', 'ok', 'deus abencoe', 'deus abençoe',
+            'obrigad', 'ate mais', 'até mais', 'bom dia', 'boa noite',
+            'valeu', 'vlw', 'blz', 'tchau', 'fui', 'falou', 'tmj'
         ];
-
-        // Short messages with stop words = CALA
-        if (lowerMessage.length < 30) {
-            for (const rule of rules) {
-                if (lowerMessage.includes(rule.toLowerCase())) {
-                    return { stop: true, reason: `STOP_RULE:${rule}` };
-                }
-            }
-        }
 
         // Emoji-only messages = CALA
         const emojiOnly = /^[\p{Emoji}\s]+$/u;
         if (emojiOnly.test(message.trim())) {
             return { stop: true, reason: 'EMOJI_ONLY' };
+        }
+
+        // Check rules
+        for (const rule of rules) {
+            if (lowerMessage.includes(rule.toLowerCase())) {
+                // Short message (<30) with stop rule = definitely stop
+                if (lowerMessage.length < 30) {
+                    return { stop: true, reason: `STOP_RULE:${rule}` };
+                }
+
+                // Longer message without question mark = also stop
+                // (e.g., "amém Deus abençoe muito, que Deus te ilumine sempre")
+                if (!hasQuestion) {
+                    return { stop: true, reason: `STOP_RULE_LONG:${rule}` };
+                }
+            }
         }
 
         return { stop: false, reason: null };
@@ -200,6 +311,7 @@ class PolicyLayer {
 
     /**
      * Check if user message triggers escalation (ESCALA PARA HUMANO)
+     * v2: Identity questions don't escalate, only bot suspicion does
      * @returns {{ escalate: boolean, reason: string|null }}
      */
     static shouldEscalateWithReason(message, escalationRules = []) {
@@ -207,11 +319,31 @@ class PolicyLayer {
 
         const lowerMessage = message.toLowerCase();
 
+        // FIRST: Check if it's just an identity question (NO escalation)
+        for (const q of this.IDENTITY_QUESTIONS) {
+            if (lowerMessage.includes(q)) {
+                // Check if there's also bot suspicion
+                const hasBotSuspicion = this.BOT_SUSPICION.some(s => lowerMessage.includes(s));
+                if (!hasBotSuspicion) {
+                    // Just identity question, no need to escalate
+                    return { escalate: false, reason: 'IDENTITY_QUESTION_NO_ESCALATE' };
+                }
+            }
+        }
+
+        // Check bot suspicion - escalate
+        for (const suspicion of this.BOT_SUSPICION) {
+            if (lowerMessage.includes(suspicion)) {
+                return { escalate: true, reason: `BOT_SUSPECT:${suspicion}` };
+            }
+        }
+
         // Default escalation rules
         const rules = escalationRules.length > 0 ? escalationRules : [
-            'me ajuda', 'desanimo', 'automatico', 'como voce faz',
-            'quem e voce', 'tristeza', 'depressao', 'suicidio',
-            'voce e bot', 'voce e ia', 'e voce mesma', 'parece bot'
+            'me ajuda', 'desanimo', 'desânimo', 'tristeza',
+            'depressao', 'depressão', 'suicidio', 'suicídio',
+            'me matar', 'nao aguento', 'não aguento',
+            'preciso de ajuda', 'socorro'
         ];
 
         for (const rule of rules) {
@@ -231,7 +363,7 @@ class PolicyLayer {
         }
 
         // Aggressive/upset detection
-        const upsetIndicators = ['pqp', 'vsf', 'fdp', 'caralho', 'merda', 'porra'];
+        const upsetIndicators = ['pqp', 'vsf', 'fdp', 'caralho', 'porra'];
         for (const word of upsetIndicators) {
             if (lowerMessage.includes(word)) {
                 return { escalate: true, reason: `UPSET:${word}` };
@@ -294,9 +426,15 @@ class PolicyLayer {
     }
 
     /**
-     * Get safe fallback response
+     * Get safe fallback response - uses policy.safe_responses if available
      */
     static getSafeResponse(policy = {}) {
+        // Use custom safe responses if provided (per niche/persona)
+        if (policy.safe_responses && policy.safe_responses.length > 0) {
+            return policy.safe_responses[Math.floor(Math.random() * policy.safe_responses.length)];
+        }
+
+        // Default fallback
         const safeResponses = [
             'Entendo! Me conta mais sobre isso.',
             'Interessante! Como posso te ajudar?',
@@ -305,6 +443,19 @@ class PolicyLayer {
             'Me fala mais sobre isso.'
         ];
         return safeResponses[Math.floor(Math.random() * safeResponses.length)];
+    }
+
+    /**
+     * Get handoff message - uses policy.handoff_message if available
+     * Note: Never mentions "equipe", "sistema", "automação"
+     */
+    static getHandoffMessage(policy = {}) {
+        if (policy.handoff_message) {
+            return policy.handoff_message;
+        }
+
+        // Default handoff that doesn't reveal automation
+        return 'Entendo... vou ler com calma e já te respondo.';
     }
 
     /**
@@ -320,7 +471,7 @@ class PolicyLayer {
     static buildLogEntry(action, reason, details = {}) {
         return {
             timestamp: new Date().toISOString(),
-            action, // STOPPED, ESCALATED, BLOCKED, PASSED
+            action,
             reason,
             ...details
         };
