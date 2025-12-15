@@ -114,11 +114,9 @@ function getUserId(req) {
     return req.user?.uid || null;
 }
 
-// Admin emails list - add your admin emails here
+// Admin emails list - emails with admin access
 const ADMIN_EMAILS = [
-    'admin@example.com',
-    'alex@example.com',
-    // Add more admin emails as needed
+    'alec.almeida201@gmail.com',
 ];
 
 // Check if user is admin
