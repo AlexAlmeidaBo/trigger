@@ -155,6 +155,16 @@ LIMITES:
 async function seedArchetypes() {
     console.log('Seeding archetypes...');
 
+    // Clean up old duplicate keys (from v1.0)
+    const oldKeys = ['religioso_catolico_pastoral', 'politica_polarizada'];
+    for (const oldKey of oldKeys) {
+        const old = db.getArchetypeByKey(oldKey);
+        if (old) {
+            console.log(`  - Removing old v1: ${oldKey}`);
+            db.run('DELETE FROM agent_archetypes WHERE key = ?', [oldKey]);
+        }
+    }
+
     for (const definition of archetypeDefinitions) {
         // Check if already exists
         const existing = db.getArchetypeByKey(definition.key);
