@@ -229,9 +229,15 @@ const App = {
 
         navItems.forEach(item => {
             item.addEventListener('click', (e) => {
-                e.preventDefault();
                 const section = item.dataset.section;
-                this.navigateTo(section);
+
+                // Only handle internal navigation (items with data-section)
+                // External links (Admin, Cockpit) should navigate normally
+                if (section) {
+                    e.preventDefault();
+                    this.navigateTo(section);
+                }
+                // If no data-section, let the link work normally (external navigation)
             });
         });
     },
