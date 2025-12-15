@@ -119,8 +119,32 @@ REGRAS ABSOLUTAS:
                 return null;
             }
 
-            // 3. Check max messages in row
+            // 2.1 Check if conversation is SILENCED via tag
+            let tags = [];
+            try { tags = conversation.tags ? JSON.parse(conversation.tags) : []; } catch (e) { }
+            if (tags.includes('SILENCED')) {
+                console.log(`[BrainResolver] Conversation ${conversation.id} is SILENCED, skipping auto-response`);
+                return null;
+            }
+
+            // 2.2 Check rate limit per campaign (anti-ban)
             const policy = archetype.policy || {};
+            const campaignRateKey = `campaign_${conversation.campaign_id || 'default'}`;
+            if (!this.campaignRateLimits) this.campaignRateLimits = new Map();
+
+            const now = Date.now();
+            const hourAgo = now - 3600000; // 1 hour
+            let campaignResponses = this.campaignRateLimits.get(campaignRateKey) || [];
+            campaignResponses = campaignResponses.filter(ts => ts > hourAgo);
+
+            const maxResponsesPerHour = policy.max_responses_per_hour || 50;
+            if (campaignResponses.length >= maxResponsesPerHour) {
+                console.log(`[BrainResolver] Campaign rate limit reached (${maxResponsesPerHour}/hour)`);
+                this.logPolicyDecision(conversation.id, 'RATE_LIMITED', 'CAMPAIGN_LIMIT', { count: campaignResponses.length });
+                return null;
+            }
+
+            // 3. Check max messages in row
             const maxInRow = policy.max_messages_in_row || 2;
 
             if (conversation.agent_messages_in_row >= maxInRow && conversation.last_sender === 'agent') {
@@ -224,14 +248,21 @@ REGRAS ABSOLUTAS:
     }
 
     /**
-     * Calculate random delay based on archetype policy
+     * Calculate random delay with jitter for human-like response timing
      */
     calculateDelay(delays) {
         const min = delays?.min || 10;
         const max = delays?.max || 30;
 
-        // Random delay between min and max seconds
-        return Math.floor(Math.random() * (max - min + 1)) + min;
+        // Base delay between min and max
+        const baseDelay = Math.floor(Math.random() * (max - min + 1)) + min;
+
+        // Add jitter: ±20% random variance
+        const jitterPercent = 0.2;
+        const jitter = baseDelay * jitterPercent * (Math.random() * 2 - 1);
+
+        // Final delay with jitter, minimum 3 seconds
+        return Math.max(3, Math.round(baseDelay + jitter));
     }
 
     /**

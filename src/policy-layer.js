@@ -371,8 +371,21 @@ class PolicyLayer {
             return { escalate: true, reason: 'LONG_MESSAGE' };
         }
 
+        // THREATS AND ACCUSATIONS - Immediate escalation
+        const threats = [
+            'vou te processar', 'vai se arrepender', 'vou denunciar',
+            'vou te matar', 'vou acabar com voce', 'vou acabar com você',
+            'vou na policia', 'vou na polícia', 'advogado',
+            'processado', 'procon'
+        ];
+        for (const threat of threats) {
+            if (lowerMessage.includes(threat)) {
+                return { escalate: true, reason: `THREAT:${threat}` };
+            }
+        }
+
         // Aggressive/upset detection
-        const upsetIndicators = ['pqp', 'vsf', 'fdp', 'caralho', 'porra'];
+        const upsetIndicators = ['pqp', 'vsf', 'fdp', 'caralho', 'porra', 'merda', 'idiota', 'imbecil', 'babaca'];
         for (const word of upsetIndicators) {
             if (lowerMessage.includes(word)) {
                 return { escalate: true, reason: `UPSET:${word}` };
@@ -380,6 +393,37 @@ class PolicyLayer {
         }
 
         return { escalate: false, reason: null };
+    }
+
+    /**
+     * Check if message needs desescalation (for POLITICA niche)
+     * Returns a desescalation message if mild aggression detected
+     * @returns {{ shouldDesescalate: boolean, message: string|null }}
+     */
+    static checkDesescalation(message, niche = '') {
+        if (niche.toUpperCase() !== 'POLITICA') {
+            return { shouldDesescalate: false, message: null };
+        }
+
+        const lowerMessage = message.toLowerCase();
+
+        // Mild aggression indicators - try to desescalate first
+        const mildAggression = [
+            'voce ta errado', 'você ta errado', 'vc ta errado',
+            'nao sabe nada', 'não sabe nada', 'ignorante',
+            'burro', 'idiota', 'seu gado'
+        ];
+
+        for (const term of mildAggression) {
+            if (lowerMessage.includes(term)) {
+                return {
+                    shouldDesescalate: true,
+                    message: 'Ei, vamos manter o respeito? Podemos discordar sem ofensas. O que você acha?'
+                };
+            }
+        }
+
+        return { shouldDesescalate: false, message: null };
     }
 
     /**

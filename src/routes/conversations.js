@@ -99,9 +99,22 @@ router.post('/:id/take-over', (req, res) => {
 
         db.takeOverConversation(id);
 
+        // Log to policy_log
+        let policyLog = [];
+        try { policyLog = conversation.policy_log ? JSON.parse(conversation.policy_log) : []; } catch (e) { }
+        policyLog.push({
+            action: 'HUMAN_TAKEN',
+            reason: 'MANUAL_TAKEOVER',
+            timestamp: new Date().toISOString()
+        });
+        db.updateConversation(id, {
+            policy_log: JSON.stringify(policyLog),
+            last_policy_event: new Date().toISOString()
+        });
+
         res.json({
             success: true,
-            message: 'Conversa assumida pelo humano',
+            message: 'Conversa assumida - agente PAUSADO',
             handoff_status: 'HUMAN_TAKEN'
         });
     } catch (err) {
@@ -121,9 +134,22 @@ router.post('/:id/return', (req, res) => {
 
         db.returnToAgent(id);
 
+        // Log to policy_log
+        let policyLog = [];
+        try { policyLog = conversation.policy_log ? JSON.parse(conversation.policy_log) : []; } catch (e) { }
+        policyLog.push({
+            action: 'RETURNED',
+            reason: 'MANUAL_RETURN',
+            timestamp: new Date().toISOString()
+        });
+        db.updateConversation(id, {
+            policy_log: JSON.stringify(policyLog),
+            last_policy_event: new Date().toISOString()
+        });
+
         res.json({
             success: true,
-            message: 'Conversa devolvida ao agente',
+            message: 'Conversa devolvida - agente REATIVADO',
             handoff_status: 'NONE'
         });
     } catch (err) {

@@ -148,9 +148,130 @@ function nicheComplianceWarning(req, res, next) {
     next();
 }
 
+/**
+ * Block automation for FREE plan
+ * This is the REAL enforcement - FREE users cannot have agent respond automatically
+ */
+function requireAutomation(req, res, next) {
+    try {
+        const userId = getUserId(req);
+        const subscription = db.getSubscription(userId);
+        const planId = subscription?.plan_id || 'FREE';
+
+        if (planId === 'FREE') {
+            return res.status(403).json({
+                success: false,
+                error: 'Automação não disponível',
+                code: 'AUTOMATION_BLOCKED',
+                message: 'Plano FREE não inclui automação do agente. Faça upgrade para usar o bot automático.',
+                upgradeUrl: '/pricing'
+            });
+        }
+
+        next();
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+/**
+ * Enforce campaign creation limit
+ */
+function requireCampaignLimit(req, res, next) {
+    try {
+        const userId = getUserId(req);
+        const subscription = db.getSubscription(userId);
+        const planId = subscription?.plan_id || 'FREE';
+        const plan = plans.getPlan(planId);
+
+        const currentCampaigns = db.getAllCampaigns(userId)?.length || 0;
+        const limit = plan.limits.campaigns;
+
+        if (limit !== -1 && currentCampaigns >= limit) {
+            return res.status(403).json({
+                success: false,
+                error: 'Limite de campanhas do plano atingido',
+                code: 'CAMPAIGN_LIMIT',
+                current: currentCampaigns,
+                max: limit,
+                plan: planId,
+                message: `Seu plano ${plan.name} permite ${limit} campanha(s). Faça upgrade para criar mais.`,
+                upgradeUrl: '/pricing'
+            });
+        }
+
+        next();
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+/**
+ * Enforce brain/archetype creation limit
+ */
+function requireBrainLimit(req, res, next) {
+    try {
+        const userId = getUserId(req);
+        const subscription = db.getSubscription(userId);
+        const planId = subscription?.plan_id || 'FREE';
+        const plan = plans.getPlan(planId);
+
+        // For now, archetypes are global - in production, filter by user
+        const currentBrains = db.getAllArchetypes(true)?.length || 0;
+        const limit = plan.limits.brains;
+
+        if (limit !== -1 && currentBrains >= limit) {
+            return res.status(403).json({
+                success: false,
+                error: 'Limite de cérebros do plano atingido',
+                code: 'BRAIN_LIMIT',
+                current: currentBrains,
+                max: limit,
+                plan: planId,
+                message: `Seu plano ${plan.name} permite ${limit} cérebro(s). Faça upgrade para criar mais.`,
+                upgradeUrl: '/pricing'
+            });
+        }
+
+        next();
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
+/**
+ * Onboarding validation - check if user completed required steps
+ */
+function requireOnboarding(req, res, next) {
+    try {
+        const userId = getUserId(req);
+
+        // Check if user has at least 1 campaign
+        const campaigns = db.getAllCampaigns(userId);
+        if (!campaigns || campaigns.length === 0) {
+            return res.status(403).json({
+                success: false,
+                error: 'Onboarding incompleto',
+                code: 'NO_CAMPAIGN',
+                message: 'Você precisa criar uma campanha antes de ativar o agente.',
+                nextStep: 'create_campaign'
+            });
+        }
+
+        next();
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+}
+
 module.exports = {
     requireFeature,
     requireLimit,
     rateLimit,
-    nicheComplianceWarning
+    nicheComplianceWarning,
+    requireAutomation,
+    requireCampaignLimit,
+    requireBrainLimit,
+    requireOnboarding
 };
+
