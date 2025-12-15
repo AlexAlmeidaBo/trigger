@@ -2,13 +2,14 @@
  * Archetypes API Routes
  * 
  * CRUD operations for agent archetypes (admin only)
- * These endpoints are used to manage the brain library
+ * All archetypes MUST inherit from BASE_ARCHETYPE_TEMPLATE
  */
 
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
 const { getUserId } = require('../authMiddleware');
+const ArchetypeValidator = require('../archetype-validator');
 
 // Get all archetypes
 router.get('/', (req, res) => {
@@ -30,6 +31,29 @@ router.get('/all', (req, res) => {
     }
 });
 
+// Get publish checklist
+router.get('/publish-checklist', (req, res) => {
+    res.json({ success: true, checklist: ArchetypeValidator.getPublishChecklist() });
+});
+
+// Get base template info
+router.get('/base-template', (req, res) => {
+    try {
+        const baseTemplate = require('../BASE_ARCHETYPE_TEMPLATE.json');
+        res.json({
+            success: true,
+            template: {
+                version: baseTemplate._version,
+                immutableFields: Object.keys(baseTemplate.IMMUTABLE_FIELDS.policy),
+                editableFields: Object.keys(baseTemplate.EDITABLE_FIELDS),
+                nicheExclusions: baseTemplate.NICHE_EXCLUSIONS
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 // Get archetype by ID
 router.get('/:id', (req, res) => {
     try {
@@ -43,35 +67,38 @@ router.get('/:id', (req, res) => {
     }
 });
 
-// Create new archetype
+// Create new archetype (WITH validation)
 router.post('/', (req, res) => {
     try {
-        const { key, niche, subniche, tone, objective, system_prompt, policy } = req.body;
+        const data = req.body;
 
-        if (!key || !niche || !tone || !system_prompt) {
+        // Validate required fields
+        const validation = ArchetypeValidator.validate(data);
+        if (!validation.valid) {
             return res.status(400).json({
                 success: false,
-                error: 'Required fields: key, niche, tone, system_prompt'
+                error: 'Validação falhou',
+                errors: validation.errors
             });
         }
 
-        const archetype = db.createArchetype({
-            key,
-            niche,
-            subniche,
-            tone,
-            objective,
-            system_prompt,
-            policy: policy || {}
-        });
+        // Merge with base template (applies immutable safety fields)
+        const mergedArchetype = ArchetypeValidator.mergeWithBase(data);
 
-        res.json({ success: true, archetype, message: 'Archetype created!' });
+        // Create in database
+        const archetype = db.createArchetype(mergedArchetype);
+
+        res.json({
+            success: true,
+            archetype,
+            message: 'Cérebro criado com regras de segurança aplicadas!'
+        });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
 });
 
-// Update archetype
+// Update archetype (WITH validation - keeps immutable fields)
 router.put('/:id', (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -81,8 +108,32 @@ router.put('/:id', (req, res) => {
             return res.status(404).json({ success: false, error: 'Archetype not found' });
         }
 
-        const archetype = db.updateArchetype(id, req.body);
-        res.json({ success: true, archetype, message: 'Archetype updated!' });
+        // Merge update data with existing
+        const updateData = {
+            ...existing,
+            ...req.body,
+            id: undefined // Remove id from merge
+        };
+
+        // Re-validate
+        const validation = ArchetypeValidator.validate(updateData);
+        if (!validation.valid) {
+            return res.status(400).json({
+                success: false,
+                error: 'Validação falhou',
+                errors: validation.errors
+            });
+        }
+
+        // Re-apply immutable fields
+        const mergedArchetype = ArchetypeValidator.mergeWithBase(updateData);
+
+        const archetype = db.updateArchetype(id, mergedArchetype);
+        res.json({
+            success: true,
+            archetype,
+            message: 'Cérebro atualizado com regras de segurança mantidas!'
+        });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -99,7 +150,7 @@ router.delete('/:id', (req, res) => {
     }
 });
 
-// Clone archetype
+// Clone archetype (inherits safety fields)
 router.post('/:id/clone', (req, res) => {
     try {
         const id = parseInt(req.params.id);
@@ -110,13 +161,19 @@ router.post('/:id/clone', (req, res) => {
         }
 
         const newKey = `${existing.key}_copy_${Date.now()}`;
-        const archetype = db.createArchetype({
+
+        // Clone and re-apply base template
+        const cloneData = {
             ...existing,
             key: newKey,
-            id: undefined
-        });
+            id: undefined,
+            persona_name: `${existing.persona_name} (Cópia)`
+        };
 
-        res.json({ success: true, archetype, message: 'Archetype cloned!' });
+        const mergedClone = ArchetypeValidator.mergeWithBase(cloneData);
+        const archetype = db.createArchetype(mergedClone);
+
+        res.json({ success: true, archetype, message: 'Cérebro clonado!' });
     } catch (err) {
         res.status(500).json({ success: false, error: err.message });
     }
@@ -135,4 +192,15 @@ router.get('/niche/:niche', (req, res) => {
     }
 });
 
+// Validate archetype without saving
+router.post('/validate', (req, res) => {
+    const validation = ArchetypeValidator.validate(req.body);
+    res.json({
+        success: validation.valid,
+        valid: validation.valid,
+        errors: validation.errors
+    });
+});
+
 module.exports = router;
+

@@ -1,28 +1,27 @@
 /**
  * Seed Archetypes - Initial brain library
  * 
- * This script creates the 3 initial archetypes:
- * 1. RELIGIOSO - Catolico - Pastoral
- * 2. POLITICA - Polarizacao
- * 3. EMAGRECIMENTO - Empatico
- * 
- * Run with: node src/seed-archetypes.js
+ * All archetypes MUST use ArchetypeValidator to inherit from BASE_ARCHETYPE_TEMPLATE.
+ * This ensures immutable safety fields are always applied.
  */
 
 const db = require('./database');
+const ArchetypeValidator = require('./archetype-validator');
 
-const archetypes = [
+// Define archetypes with EDITABLE fields only
+// Immutable fields come from BASE_ARCHETYPE_TEMPLATE
+const archetypeDefinitions = [
     // ================================================
-    // 1. RELIGIOSO - Catolico - Pastoral (Pastora Lucia)
+    // 1. RELIGIOSO - Pastoral - Lúcia
     // ================================================
     {
-        key: 'religioso_catolico_pastoral',
+        key: 'religioso_pastoral_lucia',
+        persona_name: 'Pastora Lúcia',
         niche: 'RELIGIOSO',
         subniche: 'Catolico',
         tone: 'pastoral',
         objective: 'acolhimento+confianca',
-        persona_name: 'Pastora Lucia',
-        version: '1.0',
+        version: '2.0',
         system_prompt: `Voce e uma pessoa acolhedora, de fe, que conversa com carinho e paciencia. Seu papel e ouvir, acolher e trazer paz.
 
 COMPORTAMENTO:
@@ -46,28 +45,29 @@ LIMITES:
 - Nao de conselhos medicos ou psicologicos
 - Se a pessoa precisar de ajuda profissional, sugira gentilmente`,
         policy: {
-            max_messages_in_row: 2,
             max_chars_per_message: 400,
-            allow_links: false,
-            allow_price: false,
             delays: { min: 25, max: 90 },
-            stop_rules: ['amem', 'ok', 'deus abencoe', 'obrigado', 'ate mais', 'bom dia', 'boa noite'],
-            escalation_rules: ['me ajuda', 'desanimo', 'automatico', 'audio', 'como voce faz', 'quem e voce', 'tristeza', 'depressao'],
-            forbidden_words: ['comprar', 'pagar', 'desconto', 'promocao', 'bot', 'ia']
+            stop_rules: ['bom dia', 'boa noite', 'paz'],
+            safe_responses: [
+                'Que Deus te abençoe! Me conta mais...',
+                'Entendo... fico feliz que você compartilhou isso comigo.',
+                'Estou aqui para ouvir você. Como posso ajudar?'
+            ],
+            handoff_message: 'Deixa eu ler isso com calma e já te respondo...'
         }
     },
 
     // ================================================
-    // 2. POLITICA - Polarizacao
+    // 2. POLÍTICA - Provocador
     // ================================================
     {
-        key: 'politica_polarizada',
+        key: 'politica_provocador',
+        persona_name: 'Comentarista Político',
         niche: 'POLITICA',
         subniche: 'Polarizacao',
         tone: 'provocador',
         objective: 'engajamento+tensao',
-        persona_name: 'Comentarista Politico',
-        version: '1.0',
+        version: '2.0',
         system_prompt: `Voce e uma pessoa apaixonada por politica que defende suas ideias com firmeza. Seu papel e engajar e provocar reflexao.
 
 COMPORTAMENTO:
@@ -90,28 +90,30 @@ LIMITES:
 - Evite fake news - se nao tiver certeza, nao afirme
 - Se a pessoa ficar agressiva, desescale`,
         policy: {
-            max_messages_in_row: 3,
             max_chars_per_message: 350,
-            allow_links: false,
-            allow_price: false,
             delays: { min: 5, max: 25 },
-            stop_rules: ['ok', 'entendi', 'valeu', 'tchau', 'fui'],
-            escalation_rules: ['ameaca', 'violencia', 'processo', 'denuncia', 'audio'],
-            forbidden_words: ['bot', 'ia', 'automatico']
+            stop_rules: ['entendi', 'fui'],
+            escalation_rules: ['processo', 'denuncia'],
+            safe_responses: [
+                'Interessante seu ponto de vista... o que te faz pensar assim?',
+                'Entendo. Cada um tem sua opinião, né?',
+                'Vamos continuar esse papo... me conta mais.'
+            ],
+            handoff_message: 'Deixa eu pensar sobre isso...'
         }
     },
 
     // ================================================
-    // 3. EMAGRECIMENTO - Empatico
+    // 3. EMAGRECIMENTO - Empático
     // ================================================
     {
         key: 'emagrecimento_empatico',
+        persona_name: 'Coach de Saúde',
         niche: 'EMAGRECIMENTO',
         subniche: 'Geral',
         tone: 'empatico',
         objective: 'validacao+rotina',
-        persona_name: 'Coach de Saude',
-        version: '1.0',
+        version: '2.0',
         system_prompt: `Voce e uma pessoa que entende as dificuldades de quem quer emagrecer e cuida da saude. Seu papel e acolher, validar e motivar.
 
 COMPORTAMENTO:
@@ -134,14 +136,17 @@ LIMITES:
 - Nao de diagnosticos
 - Se perceber disturbio alimentar, sugira ajuda profissional`,
         policy: {
-            max_messages_in_row: 2,
             max_chars_per_message: 400,
-            allow_links: false,
-            allow_price: false,
             delays: { min: 15, max: 60 },
-            stop_rules: ['ok', 'obrigad', 'vlw', 'valeu', 'entendi'],
-            escalation_rules: ['bulimia', 'anorexia', 'vomito', 'jejum extremo', 'audio', 'como voce funciona'],
-            forbidden_words: ['milagre', 'rapido', 'sem esforco', 'bot', 'ia']
+            stop_rules: ['vlw'],
+            escalation_rules: ['bulimia', 'anorexia', 'vomito', 'jejum extremo'],
+            forbidden_words: ['milagre', 'rapido', 'sem esforco'],
+            safe_responses: [
+                'Entendo como é difícil... cada passo conta!',
+                'Faz sentido o que você está sentindo. Vamos devagar.',
+                'Sua jornada é única. Me conta mais sobre sua rotina.'
+            ],
+            handoff_message: 'Deixa eu pensar em como te ajudar melhor...'
         }
     }
 ];
@@ -150,19 +155,29 @@ LIMITES:
 async function seedArchetypes() {
     console.log('Seeding archetypes...');
 
-    for (const archetype of archetypes) {
+    for (const definition of archetypeDefinitions) {
         // Check if already exists
-        const existing = db.getArchetypeByKey(archetype.key);
+        const existing = db.getArchetypeByKey(definition.key);
         if (existing) {
-            console.log(`  - ${archetype.key} already exists, skipping`);
+            console.log(`  - ${definition.key} already exists, skipping`);
             continue;
         }
 
+        // Validate
+        const validation = ArchetypeValidator.validate(definition);
+        if (!validation.valid) {
+            console.error(`  ! Invalid ${definition.key}:`, validation.errors);
+            continue;
+        }
+
+        // Merge with base template (applies immutable fields)
+        const mergedArchetype = ArchetypeValidator.mergeWithBase(definition);
+
         try {
-            db.createArchetype(archetype);
-            console.log(`  + Created: ${archetype.key}`);
+            db.createArchetype(mergedArchetype);
+            console.log(`  + Created: ${definition.key} (v${definition.version})`);
         } catch (error) {
-            console.error(`  ! Error creating ${archetype.key}:`, error.message);
+            console.error(`  ! Error creating ${definition.key}:`, error.message);
         }
     }
 
@@ -174,4 +189,4 @@ if (require.main === module) {
     seedArchetypes();
 }
 
-module.exports = { seedArchetypes, archetypes };
+module.exports = { seedArchetypes, archetypeDefinitions };
