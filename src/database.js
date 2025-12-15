@@ -280,6 +280,14 @@ class Database {
                     console.log('Adding contact_name column to conversations...');
                     this.db.run("ALTER TABLE conversations ADD COLUMN contact_name TEXT");
                 }
+                if (!columns.includes('silenced')) {
+                    console.log('Adding silenced column to conversations...');
+                    this.db.run("ALTER TABLE conversations ADD COLUMN silenced INTEGER DEFAULT 0");
+                }
+                if (!columns.includes('last_policy_event')) {
+                    console.log('Adding last_policy_event column to conversations...');
+                    this.db.run("ALTER TABLE conversations ADD COLUMN last_policy_event TEXT");
+                }
             }
         } catch (e) {
             console.log('Migration conversations enhancements:', e.message);

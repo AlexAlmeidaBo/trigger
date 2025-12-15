@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cockpit Operacional | Agent IA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/cockpit.css">
+</head>
+
+<body>
+    <div class="cockpit-app">
+        <!-- Header -->
+        <header class="cockpit-header">
+            <div class="header-left">
+                <h1>🎛️ Cockpit Operacional</h1>
+                <span class="header-subtitle">Gerenciamento de Conversas</span>
+            </div>
+            <div class="header-right">
+                <button class="btn btn-secondary" onclick="Cockpit.refresh()">↻ Atualizar</button>
+                <a href="/" class="btn btn-ghost">← Voltar ao Painel</a>
+            </div>
+        </header>
+
+        <!-- Tabs -->
+        <nav class="cockpit-tabs">
+            <button class="tab active" data-tab="inbox" onclick="Cockpit.switchTab('inbox')">
+                📥 Inbox
+                <span class="badge" id="inboxCount">0</span>
+            </button>
+            <button class="tab" data-tab="conversation" onclick="Cockpit.switchTab('conversation')">
+                💬 Conversa
+            </button>
+            <button class="tab" data-tab="audit" onclick="Cockpit.switchTab('audit')">
+                📋 Auditoria
+            </button>
+            <button class="tab" data-tab="metrics" onclick="Cockpit.switchTab('metrics')">
+                📊 Métricas
+            </button>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="cockpit-content">
+            <!-- INBOX TAB -->
+            <section class="tab-content active" id="tab-inbox">
+                <!-- Filters -->
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label>Status:</label>
+                        <select id="filterStatus" onchange="Cockpit.loadInbox()">
+                            <option value="ALL">Todos</option>
+                            <option value="ESCALATED">🔴 Escaladas</option>
+                            <option value="HUMAN_TAKEN">🟡 Assumidas</option>
+                            <option value="NONE">🟢 Automático</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Ordenar:</label>
+                        <select id="filterSort" onchange="Cockpit.loadInbox()">
+                            <option value="status">Por Status</option>
+                            <option value="urgency">Por Urgência</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Cérebro:</label>
+                        <select id="filterArchetype" onchange="Cockpit.loadInbox()">
+                            <option value="">Todos</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Tag:</label>
+                        <select id="filterTag" onchange="Cockpit.loadInbox()">
+                            <option value="">Todas</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Conversations Table -->
+                <div class="inbox-table-wrapper">
+                    <table class="inbox-table">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Contato</th>
+                                <th>Cérebro</th>
+                                <th>Tags</th>
+                                <th>Última Decisão</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inboxBody">
+                            <tr>
+                                <td colspan="6" class="empty-state">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- CONVERSATION TAB -->
+            <section class="tab-content" id="tab-conversation">
+                <div class="conversation-layout">
+                    <div class="conversation-main">
+                        <div class="conversation-header" id="convHeader">
+                            <span class="muted">Selecione uma conversa no Inbox</span>
+                        </div>
+                        <div class="messages-container" id="messagesContainer">
+                            <div class="empty-state">Nenhuma conversa selecionada</div>
+                        </div>
+                        <div class="conversation-actions" id="convActions" style="display: none;">
+                            <button class="btn btn-primary" onclick="Cockpit.takeOver()">Assumir Conversa</button>
+                            <button class="btn btn-secondary" onclick="Cockpit.returnToAgent()">Devolver ao
+                                Agente</button>
+                            <button class="btn btn-warning" onclick="Cockpit.silenceConversation()">Silenciar</button>
+                        </div>
+                    </div>
+                    <div class="conversation-sidebar" id="convSidebar">
+                        <h3>Detalhes</h3>
+                        <div class="sidebar-empty">Selecione uma conversa</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- AUDIT TAB -->
+            <section class="tab-content" id="tab-audit">
+                <div class="audit-header">
+                    <h2>Logs de Auditoria</h2>
+                    <button class="btn btn-secondary" onclick="Cockpit.exportLogs()">📥 Exportar CSV</button>
+                </div>
+                <div class="filters-bar">
+                    <div class="filter-group">
+                        <label>Ação:</label>
+                        <select id="auditAction" onchange="Cockpit.loadAudit()">
+                            <option value="">Todas</option>
+                            <option value="STOPPED">STOPPED</option>
+                            <option value="ESCALATED">ESCALATED</option>
+                            <option value="BLOCKED">BLOCKED</option>
+                            <option value="MODIFIED">MODIFIED</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label>Buscar razão:</label>
+                        <input type="text" id="auditReason" placeholder="ex: BOT_SUSPECT" onkeyup="Cockpit.loadAudit()">
+                    </div>
+                </div>
+                <div class="audit-table-wrapper">
+                    <table class="audit-table">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>Ação</th>
+                                <th>Razão</th>
+                                <th>Contato</th>
+                                <th>Conversa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="auditBody">
+                            <tr>
+                                <td colspan="5" class="empty-state">Carregando...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- METRICS TAB -->
+            <section class="tab-content" id="tab-metrics">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-value" id="metricTotal">0</div>
+                        <div class="metric-label">Total Conversas</div>
+                    </div>
+                    <div class="metric-card escalated">
+                        <div class="metric-value" id="metricEscalated">0</div>
+                        <div class="metric-label">Escaladas</div>
+                    </div>
+                    <div class="metric-card human">
+                        <div class="metric-value" id="metricHuman">0</div>
+                        <div class="metric-label">Assumidas</div>
+                    </div>
+                    <div class="metric-card active">
+                        <div class="metric-value" id="metricActive">0</div>
+                        <div class="metric-label">Automático</div>
+                    </div>
+                </div>
+
+                <div class="metrics-row">
+                    <div class="metrics-panel">
+                        <h3>Taxas (%)</h3>
+                        <div class="rates-list" id="ratesList">
+                            <div class="rate-item">
+                                <span>Stop Rate</span>
+                                <span class="rate-value" id="stopRate">0%</span>
+                            </div>
+                            <div class="rate-item">
+                                <span>Block Rate</span>
+                                <span class="rate-value" id="blockRate">0%</span>
+                            </div>
+                            <div class="rate-item">
+                                <span>Escalate Rate</span>
+                                <span class="rate-value" id="escalateRate">0%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="metrics-panel">
+                        <h3>Top Razões de Escalonamento</h3>
+                        <div class="reasons-list" id="topReasons">
+                            <div class="empty-state">Carregando...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="js/cockpit.js"></script>
+    <script>
+        // Initialize on load
+        document.addEventListener('DOMContentLoaded', () => {
+            Cockpit.init();
+        });
+    </script>
+</body>
+
+</html>
