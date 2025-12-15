@@ -114,4 +114,31 @@ function getUserId(req) {
     return req.user?.uid || null;
 }
 
-module.exports = { authMiddleware, getUserId, initializeFirebase };
+// Admin emails list - add your admin emails here
+const ADMIN_EMAILS = [
+    'admin@example.com',
+    'alex@example.com',
+    // Add more admin emails as needed
+];
+
+// Check if user is admin
+function isAdmin(req) {
+    const email = req.user?.email;
+    if (!email) return false;
+    return ADMIN_EMAILS.includes(email.toLowerCase());
+}
+
+// Require admin middleware
+function requireAdmin(req, res, next) {
+    if (!isAdmin(req)) {
+        return res.status(403).json({
+            success: false,
+            error: 'Acesso negado',
+            message: 'Apenas administradores podem acessar esta área.'
+        });
+    }
+    next();
+}
+
+module.exports = { authMiddleware, getUserId, initializeFirebase, isAdmin, requireAdmin };
+

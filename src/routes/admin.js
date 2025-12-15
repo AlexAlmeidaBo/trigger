@@ -2,11 +2,21 @@
  * Admin API Routes
  * 
  * Dashboard endpoints for system control
+ * PROTECTED: Only admins can access these endpoints
  */
 
 const express = require('express');
 const router = express.Router();
 const db = require('../database');
+const { requireAdmin, isAdmin } = require('../authMiddleware');
+
+// Apply requireAdmin middleware to all routes in this router
+router.use(requireAdmin);
+
+// Check if current user is admin (for frontend visibility)
+router.get('/check', (req, res) => {
+    res.json({ success: true, isAdmin: true }); // Already passed requireAdmin
+});
 
 // Get plans distribution
 router.get('/plans-distribution', (req, res) => {
