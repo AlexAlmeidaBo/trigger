@@ -77,16 +77,14 @@ function requireLimit(limitName, getCurrentUsage) {
 function rateLimit(options = {}) {
     const {
         freeLimit = 10,        // requests per minute for FREE
-        starterLimit = 30,     // requests per minute for STARTER
-        proLimit = 100,        // requests per minute for PRO
-        agencyLimit = -1       // unlimited for AGENCY
+        mensalLimit = 60,      // requests per minute for MENSAL
+        vitalicioLimit = -1    // unlimited for VITALICIO
     } = options;
 
     const limits = {
         FREE: freeLimit,
-        STARTER: starterLimit,
-        PRO: proLimit,
-        AGENCY: agencyLimit
+        MENSAL: mensalLimit,
+        VITALICIO: vitalicioLimit
     };
 
     return (req, res, next) => {

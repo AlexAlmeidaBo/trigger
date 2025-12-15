@@ -2,10 +2,11 @@
  * SaaS Plans Configuration
  * 
  * Defines the plan tiers, limits, and feature flags
+ * Based on actual pricing: Gratuito, Mensal (R$27,90), Vitalício (R$299)
  */
 
 const PLANS = {
-    // Free tier
+    // Free tier - Gratuito
     FREE: {
         id: 'FREE',
         name: 'Gratuito',
@@ -19,93 +20,66 @@ const PLANS = {
             contactsTotal: 100
         },
         features: {
-            aiAgent: false,
-            aiVariations: false,
+            aiAgent: false,          // ❌ Agente IA
+            aiVariations: false,     // ❌ Texto Mágico (IA)
             cockpitDashboard: false,
             exportCsv: false,
             customBrains: false,
-            multipleArchetypes: false,
             prioritySupport: false,
-            whitelabel: false,
-            apiAccess: false
+            unlimitedMessages: false,
+            importacaoIlimitada: true // ✅ Importação ilimitada
         }
     },
 
-    // Starter tier
-    STARTER: {
-        id: 'STARTER',
-        name: 'Starter',
+    // Monthly tier - Mensal
+    MENSAL: {
+        id: 'MENSAL',
+        name: 'Mensal',
         price: 2790, // R$ 27,90 in cents
-        billingCycle: 'monthly',
-        limits: {
-            campaigns: 3,
-            brains: 2,
-            conversationsPerMonth: 500,
-            messagesPerDay: 100,
-            contactsTotal: 1000
-        },
-        features: {
-            aiAgent: true,
-            aiVariations: true,
-            cockpitDashboard: true,
-            exportCsv: true,
-            customBrains: false,
-            multipleArchetypes: false,
-            prioritySupport: false,
-            whitelabel: false,
-            apiAccess: false
-        }
-    },
-
-    // Pro tier
-    PRO: {
-        id: 'PRO',
-        name: 'Pro',
-        price: 9790, // R$ 97,90 in cents
         billingCycle: 'monthly',
         limits: {
             campaigns: 10,
             brains: 5,
-            conversationsPerMonth: 2000,
-            messagesPerDay: 500,
-            contactsTotal: 10000
+            conversationsPerMonth: -1, // unlimited
+            messagesPerDay: -1,        // unlimited
+            contactsTotal: -1          // unlimited
         },
         features: {
-            aiAgent: true,
-            aiVariations: true,
+            aiAgent: true,             // ✅ Agente IA
+            aiVariations: true,        // ✅ Texto Mágico (IA)
             cockpitDashboard: true,
             exportCsv: true,
             customBrains: true,
-            multipleArchetypes: true,
-            prioritySupport: true,
-            whitelabel: false,
-            apiAccess: true
+            prioritySupport: false,
+            unlimitedMessages: true,   // ✅ Mensagens ilimitadas
+            importacaoIlimitada: true  // ✅ Importação ilimitada
         }
     },
 
-    // Agency tier
-    AGENCY: {
-        id: 'AGENCY',
-        name: 'Agency',
-        price: 29790, // R$ 297,90 in cents
-        billingCycle: 'monthly',
+    // Lifetime tier - Vitalício
+    VITALICIO: {
+        id: 'VITALICIO',
+        name: 'Vitalício',
+        price: 29900, // R$ 299,00 in cents (one-time)
+        billingCycle: 'lifetime',
         limits: {
-            campaigns: -1, // unlimited
-            brains: -1, // unlimited
+            campaigns: -1,             // unlimited
+            brains: -1,                // unlimited
             conversationsPerMonth: -1, // unlimited
-            messagesPerDay: -1, // unlimited
-            contactsTotal: -1 // unlimited
+            messagesPerDay: -1,        // unlimited
+            contactsTotal: -1          // unlimited
         },
         features: {
-            aiAgent: true,
-            aiVariations: true,
+            aiAgent: true,             // ✅ Agente IA + Atualizações
+            aiVariations: true,        // ✅ Texto Mágico (IA)
             cockpitDashboard: true,
             exportCsv: true,
             customBrains: true,
-            multipleArchetypes: true,
             prioritySupport: true,
-            whitelabel: true,
-            apiAccess: true
+            unlimitedMessages: true,   // ✅ Mensagens ilimitadas
+            importacaoIlimitada: true, // ✅ Importação ilimitada
+            accessoVitalicio: true,    // ✅ Acesso vitalício
+            futureUpdates: true        // ✅ Atualizações futuras
         }
     }
 };
@@ -113,14 +87,15 @@ const PLANS = {
 // Feature descriptions for UI
 const FEATURE_DESCRIPTIONS = {
     aiAgent: 'Agente IA Automático',
-    aiVariations: 'Variações de Mensagem com IA',
+    aiVariations: 'Texto Mágico (IA)',
     cockpitDashboard: 'Painel Cockpit Operacional',
     exportCsv: 'Exportar Logs e Dados',
     customBrains: 'Criar Cérebros Customizados',
-    multipleArchetypes: 'Múltiplos Arquétipos',
     prioritySupport: 'Suporte Prioritário',
-    whitelabel: 'Marca Branca (Whitelabel)',
-    apiAccess: 'Acesso à API'
+    unlimitedMessages: 'Mensagens Ilimitadas',
+    importacaoIlimitada: 'Importação Ilimitada',
+    accessoVitalicio: 'Acesso Vitalício',
+    futureUpdates: 'Atualizações Futuras'
 };
 
 // Get plan by ID
@@ -157,7 +132,7 @@ function getAllPlans() {
 
 // Get upgrade path from current plan
 function getUpgradePath(currentPlanId) {
-    const order = ['FREE', 'STARTER', 'PRO', 'AGENCY'];
+    const order = ['FREE', 'MENSAL', 'VITALICIO'];
     const currentIndex = order.indexOf(currentPlanId);
     if (currentIndex === -1 || currentIndex >= order.length - 1) return null;
     return order[currentIndex + 1];
