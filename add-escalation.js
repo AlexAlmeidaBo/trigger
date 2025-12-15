@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const indexPath = path.join(__dirname, 'public', 'index.html');
+// Read with explicit UTF-8 encoding
 let html = fs.readFileSync(indexPath, 'utf8');
 
 const escalationSection = `
@@ -25,30 +26,14 @@ const escalationSection = `
                     </div>
                 </div>`;
 
-// Find the agent-logs-card closing and section closing
-const target = /<\/div>\s*<\/div>\s*<\/section>\s*<\/main>/;
-const replacement = `</div>
-                </div>
-${escalationSection}
-            </section>
-
-        </main>`;
-
-if (html.match(target)) {
-    html = html.replace(target, replacement);
-    fs.writeFileSync(indexPath, html);
-    console.log('Escalation section added successfully!');
+// Find the closing </section> before </main>
+const sectionCloseIndex = html.lastIndexOf('</section>');
+if (sectionCloseIndex > -1) {
+    // Insert before </section>
+    html = html.slice(0, sectionCloseIndex) + escalationSection + '\n            ' + html.slice(sectionCloseIndex);
+    // Write back with explicit UTF-8 encoding
+    fs.writeFileSync(indexPath, html, 'utf8');
+    console.log('Escalation section added with UTF-8 encoding!');
 } else {
-    console.log('Target pattern not found, trying alternative...');
-    // Try simpler approach - find </section> before </main>
-    const simpler = html.indexOf('</section>\r\n\r\n        </main>');
-    if (simpler > -1) {
-        const before = html.substring(0, simpler);
-        const after = html.substring(simpler);
-        html = before.replace(/<\/div>\s*<\/div>\s*$/m, `</div>\n                </div>\n${escalationSection}`) + after;
-        fs.writeFileSync(indexPath, html);
-        console.log('Escalation section added via alternative method!');
-    } else {
-        console.log('Could not find insertion point');
-    }
+    console.log('Could not find insertion point');
 }
