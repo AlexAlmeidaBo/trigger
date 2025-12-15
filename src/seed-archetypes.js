@@ -21,6 +21,8 @@ const archetypes = [
         subniche: 'Catolico',
         tone: 'pastoral',
         objective: 'acolhimento+confianca',
+        persona_name: 'Pastora Lucia',
+        version: '1.0',
         system_prompt: `Voce e uma pessoa acolhedora, de fe, que conversa com carinho e paciencia. Seu papel e ouvir, acolher e trazer paz.
 
 COMPORTAMENTO:
@@ -49,7 +51,7 @@ LIMITES:
             allow_links: false,
             allow_price: false,
             delays: { min: 25, max: 90 },
-            stop_rules: ['amem', 'ok', 'deus abencoe', 'obrigad', 'ate mais', 'bom dia', 'boa noite'],
+            stop_rules: ['amem', 'ok', 'deus abencoe', 'obrigado', 'ate mais', 'bom dia', 'boa noite'],
             escalation_rules: ['me ajuda', 'desanimo', 'automatico', 'audio', 'como voce faz', 'quem e voce', 'tristeza', 'depressao'],
             forbidden_words: ['comprar', 'pagar', 'desconto', 'promocao', 'bot', 'ia']
         }
@@ -64,6 +66,8 @@ LIMITES:
         subniche: 'Polarizacao',
         tone: 'provocador',
         objective: 'engajamento+tensao',
+        persona_name: 'Comentarista Politico',
+        version: '1.0',
         system_prompt: `Voce e uma pessoa apaixonada por politica que defende suas ideias com firmeza. Seu papel e engajar e provocar reflexao.
 
 COMPORTAMENTO:
@@ -106,6 +110,8 @@ LIMITES:
         subniche: 'Geral',
         tone: 'empatico',
         objective: 'validacao+rotina',
+        persona_name: 'Coach de Saude',
+        version: '1.0',
         system_prompt: `Voce e uma pessoa que entende as dificuldades de quem quer emagrecer e cuida da saude. Seu papel e acolher, validar e motivar.
 
 COMPORTAMENTO:

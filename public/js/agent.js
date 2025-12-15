@@ -233,5 +233,95 @@ const Agent = {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    },
+
+    // ===== ESCALATION FUNCTIONS =====
+
+    async loadEscalated() {
+        try {
+            const result = await API.get('/conversations/escalated');
+            if (result.success) {
+                this.escalatedConversations = result.conversations;
+                this.renderEscalated();
+            }
+        } catch (err) {
+            console.error('Error loading escalated:', err);
+        }
+    },
+
+    async loadMetrics() {
+        try {
+            const result = await API.get('/conversations/metrics/summary');
+            if (result.success) {
+                const m = result.metrics;
+                const escEl = document.getElementById('metricEscalated');
+                const humanEl = document.getElementById('metricHumanTaken');
+                if (escEl) escEl.textContent = `${m.escalated} escaladas`;
+                if (humanEl) humanEl.textContent = `${m.human_taken} assumidas`;
+            }
+        } catch (err) {
+            console.error('Error loading metrics:', err);
+        }
+    },
+
+    renderEscalated() {
+        const container = document.getElementById('escalatedList');
+        if (!container) return;
+
+        if (!this.escalatedConversations?.length) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <p>Nenhuma conversa escalada</p>
+                    <small>Conversas que precisam de atencao humana aparecerao aqui</small>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = this.escalatedConversations.map(conv => `
+            <div class="escalated-item" data-id="${conv.id}">
+                <div class="escalated-info">
+                    <strong>📱 ${conv.contact_name || conv.contact_phone}</strong>
+                    <span class="badge ${conv.handoff_status === 'ESCALATED' ? 'badge-warning' : 'badge-info'}">
+                        ${conv.handoff_status === 'ESCALATED' ? 'Aguardando' : 'Assumida'}
+                    </span>
+                </div>
+                <div class="escalated-meta">
+                    <small>${conv.archetype?.persona_name || conv.archetype?.niche || '-'}</small>
+                </div>
+                <div class="escalated-actions">
+                    ${conv.handoff_status === 'ESCALATED'
+                ? `<button class="btn btn-sm btn-primary" onclick="Agent.takeOver(${conv.id})">Assumir</button>`
+                : `<button class="btn btn-sm btn-secondary" onclick="Agent.returnToAgent(${conv.id})">Devolver</button>`
+            }
+                </div>
+            </div>
+        `).join('');
+    },
+
+    async takeOver(conversationId) {
+        try {
+            const result = await API.post(`/conversations/${conversationId}/take-over`);
+            if (result.success) {
+                Toast.success('Conversa assumida!');
+                this.loadEscalated();
+                this.loadMetrics();
+            }
+        } catch (err) {
+            Toast.error('Erro ao assumir conversa');
+        }
+    },
+
+    async returnToAgent(conversationId) {
+        try {
+            const result = await API.post(`/conversations/${conversationId}/return`);
+            if (result.success) {
+                Toast.success('Conversa devolvida ao agente');
+                this.loadEscalated();
+                this.loadMetrics();
+            }
+        } catch (err) {
+            Toast.error('Erro ao devolver conversa');
+        }
     }
 };

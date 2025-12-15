@@ -18,6 +18,7 @@ const groupSearchRouter = require('./src/routes/group-search');
 const agentRouter = require('./src/routes/agent');
 const subscriptionsRouter = require('./src/routes/subscriptions');
 const archetypesRouter = require('./src/routes/archetypes');
+const conversationsRouter = require('./src/routes/conversations');
 const { seedArchetypes } = require('./src/seed-archetypes');
 
 const app = express();
@@ -52,6 +53,7 @@ app.use('/api/groups', groupSearchRouter);
 app.use('/api/agent', agentRouter);
 app.use('/api/subscription', subscriptionsRouter);
 app.use('/api/archetypes', archetypesRouter);
+app.use('/api/conversations', conversationsRouter);
 
 // WhatsApp status endpoint
 app.get('/api/whatsapp/status', (req, res) => {

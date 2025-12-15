@@ -239,6 +239,52 @@ class Database {
             console.log('Migration campaigns archetype:', e.message);
         }
 
+        // Add persona_name, version, changelog to agent_archetypes
+        try {
+            const result = this.db.exec("PRAGMA table_info(agent_archetypes)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('persona_name')) {
+                    console.log('Adding persona_name column to agent_archetypes...');
+                    this.db.run("ALTER TABLE agent_archetypes ADD COLUMN persona_name TEXT");
+                }
+                if (!columns.includes('version')) {
+                    console.log('Adding version column to agent_archetypes...');
+                    this.db.run("ALTER TABLE agent_archetypes ADD COLUMN version TEXT DEFAULT '1.0'");
+                }
+                if (!columns.includes('changelog')) {
+                    console.log('Adding changelog column to agent_archetypes...');
+                    this.db.run("ALTER TABLE agent_archetypes ADD COLUMN changelog TEXT");
+                }
+            }
+        } catch (e) {
+            console.log('Migration agent_archetypes enhancements:', e.message);
+        }
+
+        // Add notes, policy_log to conversations
+        try {
+            const result = this.db.exec("PRAGMA table_info(conversations)");
+            if (result.length > 0) {
+                const columns = result[0].values.map(row => row[1]);
+
+                if (!columns.includes('notes')) {
+                    console.log('Adding notes column to conversations...');
+                    this.db.run("ALTER TABLE conversations ADD COLUMN notes TEXT");
+                }
+                if (!columns.includes('policy_log')) {
+                    console.log('Adding policy_log column to conversations...');
+                    this.db.run("ALTER TABLE conversations ADD COLUMN policy_log TEXT");
+                }
+                if (!columns.includes('contact_name')) {
+                    console.log('Adding contact_name column to conversations...');
+                    this.db.run("ALTER TABLE conversations ADD COLUMN contact_name TEXT");
+                }
+            }
+        } catch (e) {
+            console.log('Migration conversations enhancements:', e.message);
+        }
+
         console.log('Database migrations completed');
     }
 
@@ -753,7 +799,10 @@ class Database {
             policy: JSON.parse(row[7] || '{}'),
             is_active: row[8],
             created_at: row[9],
-            updated_at: row[10]
+            updated_at: row[10],
+            persona_name: row[11] || null,
+            version: row[12] || '1.0',
+            changelog: row[13] || null
         }));
     }
 
@@ -773,7 +822,10 @@ class Database {
             policy: JSON.parse(row[7] || '{}'),
             is_active: row[8],
             created_at: row[9],
-            updated_at: row[10]
+            updated_at: row[10],
+            persona_name: row[11] || null,
+            version: row[12] || '1.0',
+            changelog: row[13] || null
         };
     }
 
@@ -793,14 +845,17 @@ class Database {
             policy: JSON.parse(row[7] || '{}'),
             is_active: row[8],
             created_at: row[9],
-            updated_at: row[10]
+            updated_at: row[10],
+            persona_name: row[11] || null,
+            version: row[12] || '1.0',
+            changelog: row[13] || null
         };
     }
 
     createArchetype(data) {
         const stmt = this.db.prepare(`
-            INSERT INTO agent_archetypes (key, niche, subniche, tone, objective, system_prompt, policy)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO agent_archetypes (key, niche, subniche, tone, objective, system_prompt, policy, persona_name, version, changelog)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
         stmt.run([
             data.key,
@@ -809,7 +864,10 @@ class Database {
             data.tone,
             data.objective || null,
             data.system_prompt,
-            JSON.stringify(data.policy || {})
+            JSON.stringify(data.policy || {}),
+            data.persona_name || null,
+            data.version || '1.0',
+            data.changelog || null
         ]);
         stmt.free();
         this.save();
@@ -830,6 +888,9 @@ class Database {
         if (data.system_prompt !== undefined) { fields.push('system_prompt = ?'); values.push(data.system_prompt); }
         if (data.policy !== undefined) { fields.push('policy = ?'); values.push(JSON.stringify(data.policy)); }
         if (data.is_active !== undefined) { fields.push('is_active = ?'); values.push(data.is_active ? 1 : 0); }
+        if (data.persona_name !== undefined) { fields.push('persona_name = ?'); values.push(data.persona_name); }
+        if (data.version !== undefined) { fields.push('version = ?'); values.push(data.version); }
+        if (data.changelog !== undefined) { fields.push('changelog = ?'); values.push(data.changelog); }
 
         fields.push('updated_at = CURRENT_TIMESTAMP');
         values.push(id);
