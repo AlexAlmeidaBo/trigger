@@ -125,12 +125,15 @@ REGRAS ABSOLUTAS:
 
             if (conversation.agent_messages_in_row >= maxInRow && conversation.last_sender === 'agent') {
                 console.log(`[BrainResolver] Max messages in row reached (${maxInRow}), waiting for user`);
+                this.logPolicyDecision(conversation.id, 'SILENCED', 'MAX_MESSAGES_IN_ROW', { count: maxInRow });
                 return null;
             }
 
-            // 4. Check stop rules in incoming message
-            if (PolicyLayer.shouldStop(message, policy.stop_rules || [])) {
-                console.log('[BrainResolver] Stop rule triggered, not responding');
+            // 4. Check stop rules in incoming message (CALA)
+            const stopResult = PolicyLayer.shouldStopWithReason(message, policy.stop_rules || []);
+            if (stopResult.stop) {
+                console.log(`[BrainResolver] Stop rule triggered: ${stopResult.reason}`);
+                this.logPolicyDecision(conversation.id, 'STOPPED', stopResult.reason, { message: message.substring(0, 50) });
                 db.updateConversation(conversation.id, {
                     last_sender: 'user',
                     agent_messages_in_row: 0
@@ -138,13 +141,21 @@ REGRAS ABSOLUTAS:
                 return null;
             }
 
-            // 5. Check escalation rules
-            if (PolicyLayer.shouldEscalate(message, policy.escalation_rules || [])) {
-                console.log('[BrainResolver] Escalation rule triggered');
+            // 5. Check escalation rules (ESCALA PARA HUMANO)
+            const escalateResult = PolicyLayer.shouldEscalateWithReason(message, policy.escalation_rules || []);
+            if (escalateResult.escalate) {
+                console.log(`[BrainResolver] Escalation triggered: ${escalateResult.reason}`);
+                this.logPolicyDecision(conversation.id, 'ESCALATED', escalateResult.reason, { message: message.substring(0, 50) });
                 db.escalateConversation(conversation.id);
 
-                // Return a brief empathetic response before stopping
-                return 'Entendo! Vou pedir para alguem da equipe te ajudar melhor com isso.';
+                // Return empathetic handoff message
+                return {
+                    message: 'Entendo! Vou pedir para alguem da equipe te ajudar melhor com isso.',
+                    delay: 3,
+                    conversationId: conversation.id,
+                    archetypeKey: archetype.key,
+                    escalated: true
+                };
             }
 
             // 6. Build conversation context
@@ -173,12 +184,20 @@ REGRAS ABSOLUTAS:
 
             let reply = response.choices[0]?.message?.content || '';
 
-            // 9. Apply policy layer validation
-            reply = PolicyLayer.validate(reply, policy);
+            // 9. Apply policy layer validation with logging
+            const validationResult = PolicyLayer.validateWithReason(reply, policy, { niche: archetype.niche });
 
-            if (!reply) {
-                console.log('[BrainResolver] Response failed policy validation');
+            if (!validationResult.allowed || !validationResult.response) {
+                console.log(`[BrainResolver] Response blocked: ${validationResult.reason}`);
+                this.logPolicyDecision(conversation.id, 'BLOCKED', validationResult.reason, { logs: validationResult.logs });
                 return null;
+            }
+
+            reply = validationResult.response;
+
+            if (validationResult.reason !== 'OK') {
+                console.log(`[BrainResolver] Response modified: ${validationResult.reason}`);
+                this.logPolicyDecision(conversation.id, 'MODIFIED', validationResult.reason, { logs: validationResult.logs });
             }
 
             // 10. Add response to history and update conversation
@@ -239,6 +258,45 @@ REGRAS ABSOLUTAS:
      */
     clearHistory(conversationId) {
         this.conversationHistory.delete(conversationId);
+    }
+
+    /**
+     * Log policy decision to conversation record
+     */
+    logPolicyDecision(conversationId, action, reason, details = {}) {
+        try {
+            const conversation = db.getConversationById(conversationId);
+            if (!conversation) return;
+
+            // Parse existing logs or create new array
+            let logs = [];
+            try {
+                logs = conversation.policy_log ? JSON.parse(conversation.policy_log) : [];
+            } catch (e) {
+                logs = [];
+            }
+
+            // Add new log entry
+            logs.push({
+                timestamp: new Date().toISOString(),
+                action, // STOPPED, ESCALATED, BLOCKED, MODIFIED, SILENCED
+                reason,
+                ...details
+            });
+
+            // Keep only last 50 logs
+            if (logs.length > 50) {
+                logs = logs.slice(-50);
+            }
+
+            // Update conversation
+            db.updateConversation(conversationId, {
+                policy_log: JSON.stringify(logs)
+            });
+
+        } catch (error) {
+            console.error('[BrainResolver] Error logging policy decision:', error.message);
+        }
     }
 }
 

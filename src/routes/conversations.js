@@ -180,4 +180,76 @@ router.get('/metrics/summary', (req, res) => {
     }
 });
 
+// Add/update tags on conversation
+router.post('/:id/tags', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const { tags } = req.body; // array of tags
+
+        const conversation = db.getConversationById(id);
+        if (!conversation) {
+            return res.status(404).json({ success: false, error: 'Conversation not found' });
+        }
+
+        // Tags are stored as JSON array
+        db.updateConversation(id, { tags: JSON.stringify(tags) });
+
+        res.json({ success: true, message: 'Tags atualizadas', tags });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Get available tag presets
+router.get('/tags/presets', (req, res) => {
+    const presets = [
+        'LEAD_QUENTE',
+        'LEAD_MORNO',
+        'LEAD_FRIO',
+        'LEAD_CANSADO',
+        'LEAD_AUTOMATICO',
+        'LEAD_DESCONFIADO',
+        'PRONTO_PARA_CTA',
+        'PRECISA_FOLLOW_UP',
+        'NAO_INCOMODAR'
+    ];
+    res.json({ success: true, presets });
+});
+
+// Get policy log for conversation
+router.get('/:id/policy-log', (req, res) => {
+    try {
+        const id = parseInt(req.params.id);
+        const conversation = db.getConversationById(id);
+
+        if (!conversation) {
+            return res.status(404).json({ success: false, error: 'Conversation not found' });
+        }
+
+        let logs = [];
+        try {
+            logs = conversation.policy_log ? JSON.parse(conversation.policy_log) : [];
+        } catch (e) {
+            logs = [];
+        }
+
+        res.json({ success: true, logs });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
+// Get human-taken conversations
+router.get('/filter/human-taken', (req, res) => {
+    try {
+        const userId = getUserId(req);
+        const all = db.getActiveConversations(userId);
+        const humanTaken = all.filter(c => c.handoff_status === 'HUMAN_TAKEN');
+
+        res.json({ success: true, conversations: humanTaken });
+    } catch (err) {
+        res.status(500).json({ success: false, error: err.message });
+    }
+});
+
 module.exports = router;

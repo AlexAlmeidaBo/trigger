@@ -54,6 +54,7 @@ app.use('/api/agent', agentRouter);
 app.use('/api/subscription', subscriptionsRouter);
 app.use('/api/archetypes', archetypesRouter);
 app.use('/api/conversations', conversationsRouter);
+app.use('/api/sandbox', require('./src/routes/sandbox'));
 
 // WhatsApp status endpoint
 app.get('/api/whatsapp/status', (req, res) => {
