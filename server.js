@@ -57,6 +57,7 @@ app.use('/api/conversations', conversationsRouter);
 app.use('/api/sandbox', require('./src/routes/sandbox'));
 app.use('/api/audit', require('./src/routes/audit'));
 app.use('/api/plans', require('./src/routes/plans'));
+app.use('/api/admin', require('./src/routes/admin'));
 
 // WhatsApp status endpoint
 app.get('/api/whatsapp/status', (req, res) => {

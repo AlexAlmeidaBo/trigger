@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | WA Sender</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/themes.css">
+    <link rel="stylesheet" href="css/admin.css">
+</head>
+
+<body>
+    <div class="admin-app">
+        <!-- Header -->
+        <header class="admin-header">
+            <div class="header-left">
+                <h1>⚙️ Admin Dashboard</h1>
+                <span class="header-subtitle">Controle do Sistema</span>
+            </div>
+            <div class="header-right">
+                <span class="server-status" id="serverStatus">🟢 Online</span>
+                <button class="btn btn-secondary" onclick="Admin.refresh()">↻ Atualizar</button>
+                <a href="/" class="btn btn-ghost">← Voltar</a>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="admin-content">
+            <!-- System Overview Cards -->
+            <section class="overview-section">
+                <h2>📊 Visão Geral do Sistema</h2>
+                <div class="overview-grid">
+                    <div class="overview-card">
+                        <div class="card-icon">👥</div>
+                        <div class="card-data">
+                            <span class="card-value" id="totalUsers">0</span>
+                            <span class="card-label">Usuários</span>
+                        </div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="card-icon">📢</div>
+                        <div class="card-data">
+                            <span class="card-value" id="totalCampaigns">0</span>
+                            <span class="card-label">Campanhas</span>
+                        </div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="card-icon">💬</div>
+                        <div class="card-data">
+                            <span class="card-value" id="totalConversations">0</span>
+                            <span class="card-label">Conversas</span>
+                        </div>
+                    </div>
+                    <div class="overview-card">
+                        <div class="card-icon">📨</div>
+                        <div class="card-data">
+                            <span class="card-value" id="totalMessages">0</span>
+                            <span class="card-label">Mensagens Hoje</span>
+                        </div>
+                    </div>
+                    <div class="overview-card highlight">
+                        <div class="card-icon">🧠</div>
+                        <div class="card-data">
+                            <span class="card-value" id="totalArchetypes">0</span>
+                            <span class="card-label">Cérebros Ativos</span>
+                        </div>
+                    </div>
+                    <div class="overview-card warning">
+                        <div class="card-icon">🔴</div>
+                        <div class="card-data">
+                            <span class="card-value" id="escalatedCount">0</span>
+                            <span class="card-label">Escaladas</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Plans Distribution -->
+            <section class="plans-section">
+                <h2>💳 Distribuição de Planos</h2>
+                <div class="plans-grid">
+                    <div class="plan-card free">
+                        <div class="plan-header">
+                            <span class="plan-name">Gratuito</span>
+                            <span class="plan-price">R$ 0</span>
+                        </div>
+                        <div class="plan-users">
+                            <span class="plan-count" id="freeUsers">0</span>
+                            <span class="plan-label">usuários</span>
+                        </div>
+                    </div>
+                    <div class="plan-card mensal">
+                        <div class="plan-header">
+                            <span class="plan-name">Mensal</span>
+                            <span class="plan-price">R$ 27,90</span>
+                        </div>
+                        <div class="plan-users">
+                            <span class="plan-count" id="mensalUsers">0</span>
+                            <span class="plan-label">usuários</span>
+                        </div>
+                        <div class="plan-mrr">
+                            MRR: <strong id="mensalMrr">R$ 0</strong>
+                        </div>
+                    </div>
+                    <div class="plan-card vitalicio">
+                        <div class="plan-header">
+                            <span class="plan-name">Vitalício</span>
+                            <span class="plan-price">R$ 299</span>
+                        </div>
+                        <div class="plan-users">
+                            <span class="plan-count" id="vitalicioUsers">0</span>
+                            <span class="plan-label">usuários</span>
+                        </div>
+                        <div class="plan-mrr">
+                            Total: <strong id="vitalicioTotal">R$ 0</strong>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Two Column Layout -->
+            <div class="admin-columns">
+                <!-- Policy Logs Summary -->
+                <section class="logs-section">
+                    <h2>📋 Últimos Eventos de Policy</h2>
+                    <div class="logs-table-wrapper">
+                        <table class="logs-table">
+                            <thead>
+                                <tr>
+                                    <th>Hora</th>
+                                    <th>Ação</th>
+                                    <th>Razão</th>
+                                    <th>Conversa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">Carregando...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Quick Actions -->
+                <section class="actions-section">
+                    <h2>⚡ Ações Rápidas</h2>
+                    <div class="actions-grid">
+                        <button class="action-btn" onclick="Admin.reseedArchetypes()">
+                            <span class="action-icon">🧠</span>
+                            <span class="action-label">Reseed Cérebros</span>
+                        </button>
+                        <button class="action-btn" onclick="Admin.clearRateLimits()">
+                            <span class="action-icon">🔓</span>
+                            <span class="action-label">Limpar Rate Limits</span>
+                        </button>
+                        <button class="action-btn" onclick="Admin.exportAllLogs()">
+                            <span class="action-icon">📥</span>
+                            <span class="action-label">Exportar Todos Logs</span>
+                        </button>
+                        <button class="action-btn warning" onclick="Admin.pauseAllAgents()">
+                            <span class="action-icon">⏸️</span>
+                            <span class="action-label">Pausar Todos Agentes</span>
+                        </button>
+                        <button class="action-btn success" onclick="Admin.resumeAllAgents()">
+                            <span class="action-icon">▶️</span>
+                            <span class="action-label">Retomar Todos Agentes</span>
+                        </button>
+                        <button class="action-btn danger" onclick="Admin.clearDatabase()">
+                            <span class="action-icon">🗑️</span>
+                            <span class="action-label">Limpar Database</span>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Active Conversations Monitor -->
+            <section class="monitor-section">
+                <h2>🔴 Conversas Ativas (Tempo Real)</h2>
+                <div class="monitor-grid" id="activeMonitor">
+                    <div class="empty-state">Nenhuma conversa ativa no momento</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="admin-footer">
+            <span>WA Sender Admin v2.0</span>
+            <span id="lastUpdate">Última atualização: --</span>
+        </footer>
+    </div>
+
+    <script src="js/admin.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            Admin.init();
+        });
+    </script>
+</body>
+
+</html>
