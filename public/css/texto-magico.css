@@ -1,0 +1,180 @@
+/* ===================================
+   Texto Mágico - Tooltip & Modal
+   =================================== */
+
+/* Tooltip container */
+.texto-magico-tooltip {
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+}
+
+.texto-magico-tooltip .tooltip-icon {
+    cursor: help;
+    margin-left: 4px;
+    font-size: 14px;
+}
+
+.texto-magico-tooltip .tooltip-content {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px 16px;
+    min-width: 280px;
+    z-index: 1000;
+    box-shadow: var(--shadow-lg);
+}
+
+.texto-magico-tooltip:hover .tooltip-content {
+    display: block;
+}
+
+.texto-magico-tooltip .tooltip-content p {
+    margin: 0 0 8px 0;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.texto-magico-tooltip .tooltip-content a {
+    color: var(--primary);
+    font-size: 12px;
+    text-decoration: none;
+}
+
+.texto-magico-tooltip .tooltip-content a:hover {
+    text-decoration: underline;
+}
+
+/* Modal overlay */
+.texto-magico-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 20px;
+}
+
+/* Modal content */
+.texto-magico-modal-content {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    max-width: 800px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
+
+.texto-magico-modal-content .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.texto-magico-modal-content .modal-header h2 {
+    margin: 0;
+    font-size: 20px;
+    color: var(--text-primary);
+}
+
+.texto-magico-modal-content .modal-close {
+    background: none;
+    border: none;
+    font-size: 28px;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.texto-magico-modal-content .modal-close:hover {
+    color: var(--text-primary);
+}
+
+.texto-magico-modal-content .modal-body {
+    padding: 24px;
+}
+
+.texto-magico-modal-content .modal-description {
+    text-align: center;
+    color: var(--text-secondary);
+    margin-bottom: 24px;
+    font-size: 14px;
+}
+
+/* Examples grid */
+.examples-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+}
+
+.example-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 16px;
+}
+
+.example-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+}
+
+.example-header .example-icon {
+    font-size: 24px;
+}
+
+.example-header h3 {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.example-messages {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.example-bubble {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Feature badge with tooltip */
+.feature-badge[data-feature="texto-magico"] {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.feature-badge .info-icon {
+    cursor: help;
+    opacity: 0.7;
+}
+
+.feature-badge .info-icon:hover {
+    opacity: 1;
+}

@@ -20,8 +20,10 @@ const PLANS = {
             contactsTotal: 100
         },
         features: {
-            aiAgent: false,          // ❌ Agente IA
-            aiVariations: false,     // ❌ Texto Mágico (IA)
+            agent_enabled: false,    // ❌ Agente IA
+            magic_text: false,       // ❌ Texto Mágico
+            aiAgent: false,          // alias
+            aiVariations: false,     // alias
             cockpitDashboard: false,
             exportCsv: false,
             customBrains: false,
@@ -45,8 +47,10 @@ const PLANS = {
             contactsTotal: -1          // unlimited
         },
         features: {
-            aiAgent: true,             // ✅ Agente IA
-            aiVariations: true,        // ✅ Texto Mágico (IA)
+            agent_enabled: true,       // ✅ Agente IA
+            magic_text: true,          // ✅ Texto Mágico
+            aiAgent: true,             // alias
+            aiVariations: true,        // alias
             cockpitDashboard: true,
             exportCsv: true,
             customBrains: true,
@@ -70,8 +74,10 @@ const PLANS = {
             contactsTotal: -1          // unlimited
         },
         features: {
-            aiAgent: true,             // ✅ Agente IA + Atualizações
-            aiVariations: true,        // ✅ Texto Mágico (IA)
+            agent_enabled: true,       // ✅ Agente IA + Atualizações
+            magic_text: true,          // ✅ Texto Mágico
+            aiAgent: true,             // alias
+            aiVariations: true,        // alias
             cockpitDashboard: true,
             exportCsv: true,
             customBrains: true,

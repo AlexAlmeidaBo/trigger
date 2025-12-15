@@ -127,10 +127,11 @@ REGRAS ABSOLUTAS:
                 return null;
             }
 
-            // 2.2 Check rate limit per campaign (anti-ban)
+            // 2.2 Check rate limit per campaign (anti-ban) - SILENT protection
             const policy = archetype.policy || {};
             const campaignRateKey = `campaign_${conversation.campaign_id || 'default'}`;
             if (!this.campaignRateLimits) this.campaignRateLimits = new Map();
+            if (!this.campaignCooldowns) this.campaignCooldowns = new Map();
 
             const now = Date.now();
             const hourAgo = now - 3600000; // 1 hour
@@ -138,10 +139,19 @@ REGRAS ABSOLUTAS:
             campaignResponses = campaignResponses.filter(ts => ts > hourAgo);
 
             const maxResponsesPerHour = policy.max_responses_per_hour || 50;
+            let rateLimitCooldown = 0;
+
             if (campaignResponses.length >= maxResponsesPerHour) {
-                console.log(`[BrainResolver] Campaign rate limit reached (${maxResponsesPerHour}/hour)`);
-                this.logPolicyDecision(conversation.id, 'RATE_LIMITED', 'CAMPAIGN_LIMIT', { count: campaignResponses.length });
-                return null;
+                // SILENT PROTECTION: Add cooldown instead of blocking
+                // Calculate cooldown: 1-5 minutes based on how far over limit
+                const overLimit = campaignResponses.length - maxResponsesPerHour;
+                rateLimitCooldown = Math.min(300, 60 + (overLimit * 30)); // 60-300 seconds
+
+                console.log(`[BrainResolver] Rate limit protection: adding ${rateLimitCooldown}s cooldown`);
+                this.logPolicyDecision(conversation.id, 'RATE_LIMIT', 'PLAN_SAFETY', {
+                    cooldown: rateLimitCooldown,
+                    count: campaignResponses.length
+                });
             }
 
             // 3. Check max messages in row
@@ -232,13 +242,23 @@ REGRAS ABSOLUTAS:
             });
 
             // 11. Calculate delay for humanized response timing
-            const delay = this.calculateDelay(policy.delays);
+            let delay = this.calculateDelay(policy.delays);
+
+            // Add silent rate limit cooldown if applicable
+            if (rateLimitCooldown > 0) {
+                delay += rateLimitCooldown;
+            }
+
+            // Track this response for campaign rate limiting
+            campaignResponses.push(now);
+            this.campaignRateLimits.set(campaignRateKey, campaignResponses);
 
             return {
                 message: reply,
                 delay,
                 conversationId: conversation.id,
-                archetypeKey: archetype.key
+                archetypeKey: archetype.key,
+                rateLimited: rateLimitCooldown > 0 // Flag for UI if needed
             };
 
         } catch (error) {
